@@ -1,5 +1,9 @@
 <?php
 
+use App\Http\Controllers\LocationController;
+use App\Http\Controllers\RoomController;
+use App\Http\Controllers\RowController;
+use App\Models\Inventory;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -16,3 +20,8 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
     return view('welcome');
 });
+
+Route::resource('inventory', Inventory::class);
+Route::resource('location', LocationController::class);
+Route::resource('room', RoomController::class);
+Route::resource('row', RowController::class);
