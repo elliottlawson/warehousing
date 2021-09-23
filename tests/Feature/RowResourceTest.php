@@ -1,7 +1,5 @@
 <?php
 
-use App\Models\Location;
-use App\Models\Room;
 use App\Models\Row;
 
 beforeEach(function () {
@@ -15,11 +13,11 @@ it('can create and update a modal')
     ->tap(fn() => $this->row->update(['name' => 'Row #07']))
     ->assertDatabaseHas('rows', ['name' => 'Row #07']);
 
-it('has a good relationship with locations')
-    ->tap(fn () => Location::factory()->create()->row()->attach($this->row))
-    ->expect(fn() => $this->row->refresh()->locations->first())
-    ->not()->toBeNull()
-    ->toBeInstanceOf(Location::class);
+// it('has a good relationship with locations')
+//     ->tap(fn () => Location::factory()->create()->row()->attach($this->row))
+//     ->expect(fn() => $this->row->refresh()->locations->first())
+//     ->not()->toBeNull()
+//     ->toBeInstanceOf(Location::class);
 
 // it('has a good relationship with rooms')
 //     ->tap(fn () => $this->location->room()->associate(Room::factory()->create()))
