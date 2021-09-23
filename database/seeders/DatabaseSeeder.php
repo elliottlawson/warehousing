@@ -15,8 +15,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             InventorySeeder::class,
             LocationSeeder::class,
-            RoomSeeder::class,
-            RowSeeder::class,
+            UnitSeeder::class,
         ]);
     }
 }
