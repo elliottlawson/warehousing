@@ -4,6 +4,7 @@ use App\Http\Controllers\LocationController;
 use App\Http\Controllers\RoomController;
 use App\Http\Controllers\RowController;
 use App\Models\Inventory;
+use App\Models\Stock;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -22,6 +23,7 @@ Route::get('/', function () {
 });
 
 Route::resource('inventory', Inventory::class);
+Route::resource('stock', Stock::class);
 Route::resource('location', LocationController::class);
 Route::resource('room', RoomController::class);
 Route::resource('row', RowController::class);

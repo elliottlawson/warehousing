@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use App\Models\Inventory;
+use App\Models\Type;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 class InventoryFactory extends Factory
@@ -18,8 +19,9 @@ class InventoryFactory extends Factory
     public function definition(): array
     {
         return [
-            'name'        => $this->faker->name(),
+            'item_number' => $this->faker->randomNumber(9),
             'description' => $this->faker->sentence(),
+            'type_id' => Type::factory(),
         ];
     }
 

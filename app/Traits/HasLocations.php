@@ -9,6 +9,6 @@ trait HasLocations
 {
     public function locations(): BelongsToMany
     {
-        return $this->belongsToMany(Location::class);
+        return $this->belongsToMany(Location::class, 'stocks');
     }
 }

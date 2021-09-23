@@ -2,8 +2,12 @@
 
 namespace App\Providers;
 
+use App\Models\Batch;
+use App\Models\Inventory;
 use App\Models\Location;
 use App\Models\Row;
+use App\Models\Stock;
+use App\Models\Transactions;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\ServiceProvider;
@@ -26,9 +30,13 @@ class AppServiceProvider extends ServiceProvider
         Relation::requireMorphMap();
 
         Relation::morphMap([
+            'batch' => Batch::class,
+            'inventory' => Inventory::class,
             'location' => Location::class,
-            'row'      => Row::class,
-            'user'     => User::class,
+            'row' => Row::class,
+            'stock' => Stock::class,
+            'transaction' => Transactions::class,
+            'user' => User::class,
         ]);
     }
 }

@@ -9,6 +9,6 @@ trait HasInventory
 {
     public function inventory(): BelongsToMany
     {
-        return $this->belongsToMany(Inventory::class);
+        return $this->belongsToMany(Inventory::class, 'stocks');
     }
 }

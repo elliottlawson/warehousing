@@ -4,13 +4,15 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateInventoryLocationTable extends Migration
+class CreateTypesTable extends Migration
 {
     public function up(): void
     {
-        Schema::create('inventory_location', function (Blueprint $table) {
-            $table->foreignId('inventory_id')->constrained();
-            $table->foreignId('location_id')->constrained();
+        Schema::create('types', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            $table->text('description')->nullable();
+            $table->string('abbreviation');
             $table->timestamps();
             $table->softDeletes();
         });
@@ -18,6 +20,6 @@ class CreateInventoryLocationTable extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists('inventory_location');
+        Schema::dropIfExists('types');
     }
 }
