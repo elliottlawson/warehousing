@@ -1,6 +1,5 @@
 <?php
 
-use App\Enums\TransactionDirection;
 use App\Models\Inventory;
 use App\Models\Location;
 use App\Models\Stock;
@@ -16,7 +15,7 @@ beforeEach(function () {
         ->for($this->location)
         ->create([
             'quantity' => $this->total_stock,
-            'lot' => $this->lot,
+            'lot'      => $this->lot,
         ]);
 });
 
@@ -27,32 +26,13 @@ it('can record a receive transaction', function () {
 
     expect($stock->transactions)->not()->toBeNull();
     expect($stock->transactions->count())->toBe(2);
-    expect(
-        $stock->transactions
-            ->firstWhere('direction', TransactionDirection::FROM)
-            ->location->name
-    )->toBe(config('warehouse.receiving.source'));
-    expect(
-        $stock->transactions
-            ->firstWhere('direction', TransactionDirection::TO)
-            ->location->name
-    )->toBe(config('warehouse.receiving.destination'));
+    expect($stock->sourceTransaction()->location->name)
+        ->toBe(config('warehouse.receiving.source'));
+    expect($stock->destinationTransaction()->location->name)
+        ->toBe(config('warehouse.receiving.destination'));
 });
 
 it('can record a move transaction', function () {
-    $location = Location::factory()->create();
-
-    $stock = Warehouse::move(100)
-        ->of($this->inventory, $this->lot)
-        ->from($this->location)
-        ->into($location)
-        ->execute();
-
-    expect($stock->transactions)->not()->toBeNull();
-    expect($stock->transactions->count())->toBe(2);
-});
-
-it('can record rollback a move transaction', function () {
     $location = Location::factory()->create();
 
     $stock = Warehouse::move(100)
@@ -76,7 +56,7 @@ it('can record an add transaction', function () {
     expect($stock->transactions)->not()->toBeNull();
     expect($stock->transactions->count())->toBe(2);
 
-    $from_transaction = $stock->transactions->firstWhere('direction', TransactionDirection::FROM);
+    $from_transaction = $stock->sourceTransaction();
 
     expect($from_transaction->location->name)->toBe(config('warehouse.add.source'));
     expect($from_transaction->quantity)->toBe($quantity);
@@ -94,9 +74,32 @@ it('can record a purge transaction', function () {
     expect($stock->transactions)->not()->toBeNull();
     expect($stock->transactions->count())->toBe(2);
 
-    $to_transaction = $stock->transactions->firstWhere('direction', TransactionDirection::TO);
+    $to_transaction = $stock->destinationTransaction();
 
     expect($to_transaction->location->name)->toBe(config('warehouse.purge.destination'));
     expect($to_transaction->quantity)->toBe($quantity);
     expect($stock->quantity)->toBe($this->total_stock - $quantity);
+});
+
+/**
+ * Check if locations are deleted and restore them if so
+ */
+it('can rollback a transaction', function () {
+    $location = Location::factory()->create();
+
+    $batch = Warehouse::move(100)
+        ->of($this->inventory, $this->lot)
+        ->from($this->location)
+        ->into($location)
+        ->execute()
+        ->batch(); // stock should not be null
+
+    $reverted_batch = Warehouse::rollback($batch);
+
+    expect($reverted_batch->transactions)->not()->toBeNull();
+    expect($reverted_batch->transactions->count())->toBe(2);
+    expect($reverted_batch->sourceTransaction()->location->name)
+        ->toBe($batch->destinationTransaction()->location->name);
+    expect($reverted_batch->destinationTransaction()->location->name)
+        ->toBe($batch->sourceTransaction()->location->name);
 });

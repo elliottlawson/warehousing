@@ -37,6 +37,11 @@ class Stock extends Model
         return random_int(1000, 99999);
     }
 
+    public function batch(): Batch
+    {
+        return $this->transactions->first()->batch;
+    }
+
     public function inventory(): BelongsTo
     {
         return $this->belongsTo(Inventory::class);
@@ -52,13 +57,12 @@ class Stock extends Model
         return $query->whereRelation('location', 'id', $location->id);
     }
 
-    // Is this really useful? We should already know the inventory...
     public function scopeOfInventory(Builder $query, Inventory $inventory): Builder
     {
         return $query->whereRelation('inventory', 'id', $inventory->id);
     }
 
-    public function scopeWithLotNumbers(Builder $query, array|string $lotNumbers): Builder
+    public function scopeHasLotNumbers(Builder $query, array|string $lotNumbers): Builder
     {
         return $query->whereIn('lot', Arr::wrap($lotNumbers));
     }

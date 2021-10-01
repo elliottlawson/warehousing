@@ -1,6 +1,5 @@
 <?php
 
-use App\Models\Batch;
 use App\Models\Inventory;
 use App\Models\Location;
 use App\Models\Stock;
@@ -16,7 +15,7 @@ beforeEach(function () {
         ->for($this->location)
         ->create([
             'quantity' => $this->total_stock,
-            'lot' => $this->lot,
+            'lot'      => $this->lot,
         ]);
 });
 
@@ -73,17 +72,16 @@ it('can rollback a move transaction', function () {
         ->into($location)
         ->execute();
 
-    /** @var Batch $batch */
-    $batch = $stock->transactions()->first()->batch;
+    $batch = $stock->transactions->first()->batch;
 
-    $rollback_stock = Warehouse::rollback($batch);
+    $rollback_batch = Warehouse::rollback($batch);
 
-    expect($rollback_stock)->not()->toBeNull();
+    expect($rollback_batch)->not()->toBeNull();
     expect($batch->reverted_at)->not()->toBeNull();
     expect($batch->transactions)
         ->each(fn ($transaction) => $transaction->reverted_at)
         ->not()->toBeNull();
-    expect($rollback_stock->location->id)->toBe($this->location->id);
+    expect($rollback_batch->destinationTransaction()->location->id)->toBe($this->location->id);
 });
 
 it('can purge some stock from a location', function () {
@@ -157,7 +155,7 @@ it('can check availability of stock by lot number', function () {
         ->forLocation()
         ->create([
             'quantity' => $quantity_1,
-            'lot' => $lot,
+            'lot'      => $lot,
         ]);
 
     $stock_with_one_location = Warehouse::onHandOflot($stock_1->inventory, $lot);
@@ -169,7 +167,7 @@ it('can check availability of stock by lot number', function () {
         ->forLocation()
         ->create([
             'quantity' => $quantity_2,
-            'lot' => $lot,
+            'lot'      => $lot,
         ]);
 
     $stock_with_multiple_locations = Warehouse::onHandOfLot($stock_2->inventory, $lot);

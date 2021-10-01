@@ -4,6 +4,17 @@ namespace App\Enums;
 
 use BenSampo\Enum\Enum;
 
+/**
+ * @method static static ADD()
+ * @method static static CONSUME()
+ * @method static static DELETE()
+ * @method static static LOCK()
+ * @method static static MOVE()
+ * @method static static PURGE()
+ * @method static static RECEIVE()
+ * @method static static ROLLBACK()
+ * @method static static TRANSFER()
+ */
 final class TransactionType extends Enum
 {
     public const ADD = 'add';
