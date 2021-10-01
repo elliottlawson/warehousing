@@ -1,11 +1,12 @@
 <?php
 
-namespace App\Services\Warehouse;
+namespace App\Services\Warehouse\Actions;
 
 use App\Models\Batch;
 use App\Models\Stock;
+use App\Services\Warehouse\TransactionDTO;
 
-interface Transaction
+interface TransactionAction
 {
     public function handle(TransactionDTO $data): Stock;
 

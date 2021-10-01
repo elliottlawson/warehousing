@@ -7,8 +7,8 @@ use App\Models\Batch;
 use App\Models\Inventory;
 use App\Models\Location;
 use App\Models\Stock;
+use App\Providers\TransactionServiceProvider;
 use App\Services\Warehouse\TransactionDTO;
-use App\Services\Warehouse\TransactionServiceProvider;
 use App\Traits\Makeable;
 
 class Warehouse

@@ -1,12 +1,13 @@
 <?php
 
-namespace App\Services\Warehouse;
+namespace App\Services\Warehouse\Actions;
 
 use App\Models\Batch;
 use App\Models\Stock;
-use App\Services\Transaction as TransactionService;
+use App\Services\Transaction;
+use App\Services\Warehouse\TransactionDTO;
 
-class Purge implements Transaction
+class Purge implements TransactionAction
 {
     public function handle(TransactionDTO $data): Stock
     {
@@ -24,7 +25,7 @@ class Purge implements Transaction
             $stock->save();
         }
 
-        TransactionService::record($data->action, $data->source, $data->destination, $stock, $data->quantity);
+        Transaction::record($data->action, $data->source, $data->destination, $stock, $data->quantity);
 
         return $stock;
     }

@@ -1,12 +1,13 @@
 <?php
 
-namespace App\Services\Warehouse;
+namespace App\Services\Warehouse\Actions;
 
 use App\Models\Batch;
 use App\Models\Stock;
-use App\Services\Transaction as TransactionService;
+use App\Services\Transaction;
+use App\Services\Warehouse\TransactionDTO;
 
-class Move implements Transaction
+class Move implements TransactionAction
 {
     public function handle(TransactionDTO $data): Stock
     {
@@ -18,7 +19,7 @@ class Move implements Transaction
         if ($source_stock->quantity === $data->quantity) {
             $source_stock->location()->associate($data->destination)->save();
 
-            TransactionService::record($data->action, $data->source, $data->destination, $source_stock, $data->quantity);
+            Transaction::record($data->action, $data->source, $data->destination, $source_stock, $data->quantity);
 
             return $source_stock;
         }
@@ -35,7 +36,7 @@ class Move implements Transaction
         $stock->quantity = $data->quantity;
         $stock->save();
 
-        TransactionService::record($data->action, $data->source, $data->destination, $stock, $data->quantity);
+        Transaction::record($data->action, $data->source, $data->destination, $stock, $data->quantity);
 
         return $stock;
     }
@@ -93,6 +94,6 @@ class Move implements Transaction
          * The issue here is that we are operating on batches in isolation from the stock
          */
 
-        return TransactionService::rollback($batch, $destination_stock);
+        return Transaction::rollback($batch, $destination_stock);
     }
 }

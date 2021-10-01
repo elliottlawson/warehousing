@@ -1,8 +1,13 @@
 <?php
 
-namespace App\Services\Warehouse;
+namespace App\Providers;
 
 use App\Enums\TransactionType;
+use App\Services\Warehouse\Actions\Add;
+use App\Services\Warehouse\Actions\Move;
+use App\Services\Warehouse\Actions\Purge;
+use App\Services\Warehouse\Actions\Receive;
+use App\Services\Warehouse\Actions\TransactionAction;
 
 class TransactionServiceProvider
 {
@@ -14,7 +19,7 @@ class TransactionServiceProvider
         TransactionType::RECEIVE => Receive::class,
     ];
 
-    public static function resolve(TransactionType $action): Transaction
+    public static function resolve(TransactionType $action): TransactionAction
     {
         return new self::$actions[$action->value]();
     }
