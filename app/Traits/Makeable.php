@@ -4,7 +4,7 @@ namespace App\Traits;
 
 trait Makeable
 {
-    protected static function make(): self
+    public static function make(): self
     {
         return new static();
     }
