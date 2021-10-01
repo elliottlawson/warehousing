@@ -93,8 +93,8 @@ class Transaction
         Transactions $template,
         Batch $batch,
         Stock $stock,
-    ): Transactions {
-        return tap(Transactions::make(), static function (Transactions $transaction) use ($type, $template, $batch, $stock) {
+    ) {
+        tap(Transactions::make(), static function (Transactions $transaction) use ($type, $template, $batch, $stock) {
             $transaction
                 ->fill([
                     'type'        => $template->type,

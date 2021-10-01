@@ -66,13 +66,12 @@ it('can move inventory to a location', function () {
 
 it('can rollback a move transaction', function () {
     $location = Location::factory()->create();
-    $stock    = Warehouse::move(100)
+    $batch    = Warehouse::move(100)
         ->of($this->inventory, $this->lot)
         ->from($this->location)
         ->into($location)
-        ->execute();
-
-    $batch = $stock->transactions->first()->batch;
+        ->execute()
+        ->batch();
 
     $rollback_batch = Warehouse::rollback($batch);
 
