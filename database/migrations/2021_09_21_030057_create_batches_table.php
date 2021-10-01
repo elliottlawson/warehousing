@@ -11,8 +11,10 @@ class CreateBatchesTable extends Migration
         Schema::create('batches', function (Blueprint $table) {
             $table->id();
             // $table->morphs('batchable');
-            $table->timestamps();
+            $table->foreignId('parent_id')->nullable()->constrained('batches');
+            $table->foreignId('reverted_id')->nullable()->constrained('batches');
             $table->timestamp('reverted_at')->nullable();
+            $table->timestamps();
             $table->softDeletes();
         });
     }
