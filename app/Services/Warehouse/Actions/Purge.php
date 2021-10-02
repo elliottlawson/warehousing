@@ -2,12 +2,11 @@
 
 namespace App\Services\Warehouse\Actions;
 
-use App\Models\Batch;
 use App\Models\Stock;
 use App\Services\Transaction;
 use App\Services\Warehouse\TransactionDTO;
 
-class Purge implements TransactionAction
+class Purge extends WarehouseActionsBase
 {
     public function handle(TransactionDTO $data): Stock
     {
@@ -28,10 +27,5 @@ class Purge implements TransactionAction
         Transaction::record($data->action, $data->source, $data->destination, $stock, $data->quantity);
 
         return $stock;
-    }
-
-    public function rollback(Batch $batch): Batch
-    {
-        // TODO: Implement rollback() method.
     }
 }
