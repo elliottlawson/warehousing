@@ -3,7 +3,6 @@
 namespace App\Services\Warehouse\Actions;
 
 use App\Models\Stock;
-use App\Services\Transaction;
 use App\Services\Warehouse\TransactionDTO;
 
 class Purge extends WarehouseActionsBase
@@ -24,7 +23,7 @@ class Purge extends WarehouseActionsBase
             $stock->save();
         }
 
-        Transaction::record($data->action, $data->source, $data->destination, $stock, $data->quantity);
+//        Transaction::record($data->action, $data->source, $data->destination, $stock, $data->quantity);
 
         return $stock;
     }
