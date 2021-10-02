@@ -20,16 +20,17 @@ beforeEach(function () {
 });
 
 it('can record a receive transaction', function () {
-    $stock = Warehouse::receive(500)
+    $quantity = 500;
+
+    $stock = Warehouse::receive($quantity)
         ->of($this->inventory)
         ->execute();
 
+    $batch = $stock->transactions->first()->batch;
+
     expect($stock->transactions)->not()->toBeNull();
-    expect($stock->transactions->count())->toBe(2);
-    expect($stock->sourceTransaction()->location->name)
-        ->toBe(config('warehouse.receiving.source'));
-    expect($stock->destinationTransaction()->location->name)
-        ->toBe(config('warehouse.receiving.destination'));
+    expect($batch->transactions->count())->toBe(2);
+    expect($batch->transactions)->each(fn ($transaction) => $transaction->quantity->toBe($quantity));
 });
 
 it('can record a move transaction', function () {
@@ -92,6 +93,8 @@ it('can rollback a move transaction', function () {
         ->batch();
 
     $reverted_batch = Warehouse::rollback($batch);
+
+    ray($reverted_batch->transactions->toArray());
 
     expect($reverted_batch)->not()->toBeNull();
     expect($batch->reverted_at)->not()->toBeNull();

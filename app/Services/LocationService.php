@@ -11,7 +11,7 @@ class LocationService
         return Location::firstOrCreate([
             'name' => config('warehouse.receiving.source'),
         ], [
-            'description' => 'Default Receiving From Location',
+            'description' => 'Default Receiving Source',
         ]);
     }
 
@@ -20,7 +20,7 @@ class LocationService
         return Location::firstOrCreate([
             'name' => config('warehouse.receiving.destination'),
         ], [
-            'description' => 'Default Receiving To Location',
+            'description' => 'Default Receiving Destination',
         ]);
     }
 
@@ -29,7 +29,7 @@ class LocationService
         return Location::firstOrCreate([
             'name' => config('warehouse.add.source'),
         ], [
-            'description' => 'Default Add Location',
+            'description' => 'Default Add Source',
         ]);
     }
 
@@ -38,7 +38,7 @@ class LocationService
         return Location::firstOrCreate([
             'name' => config('warehouse.purge.destination'),
         ], [
-            'description' => 'Default Purge Location',
+            'description' => 'Default Purge Destination',
         ]);
     }
 }

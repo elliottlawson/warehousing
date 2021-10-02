@@ -12,17 +12,31 @@ class Receive implements TransactionAction
 {
     public function handle(TransactionDTO $data): Stock
     {
-        $source      = LocationService::defaultReceivingSource();
+        $source = LocationService::defaultReceivingSource();
+
+        $source_stock = Stock::withTrashed()
+            ->firstOrCreate([
+                'location_id'  => $source->id,
+                'inventory_id' => $data->inventory->id,
+            ]);
+
+        if ($source_stock->trashed()) {
+            $source_stock->restore();
+        }
+
+        $source_stock->update(['quantity' => $data->quantity]);
+
         $destination = $data->destination ?? LocationService::defaultReceivingDestination();
-        $stock       = Stock::make(['quantity' => $data->quantity]);
 
-        $stock->inventory()->associate($data->inventory);
-        $stock->location()->associate($destination);
-        $stock->save();
+        $destination_stock = Stock::create([
+            'quantity'     => $data->quantity,
+            'location_id'  => $destination->id,
+            'inventory_id' => $data->inventory->id,
+        ]);
 
-        Transaction::record($data->action, $source, $destination, $stock, $data->quantity);
+        Transaction::record($data->action, $data->quantity, $source_stock, $destination_stock);
 
-        return $stock;
+        return $destination_stock;
     }
 
     public function rollback(Batch $batch): Batch

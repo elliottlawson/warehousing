@@ -20,23 +20,31 @@ beforeEach(function () {
 });
 
 it('can receive new inventory into the default location', function () {
-    $stock = Warehouse::receive(100)
+    $quantity = 100;
+
+    $stock = Warehouse::receive($quantity)
         ->of($this->inventory)
         ->execute();
 
+    $batch = $stock->transactions->first()->batch;
+
     expect($stock)->not()->toBeNull();
-    expect($stock->quantity)->toBe(100);
+    expect($stock->quantity)->toBe($quantity);
     expect($stock->location->name)->toBe(config('warehouse.receiving.destination'));
+    expect($batch->sourceTransaction()->quantity)->toBe($quantity);
+    expect($batch->sourceTransaction()->location->name)->toBe(config('warehouse.receiving.source'));
 });
 
 it('can receive new inventory into a set location', function () {
-    $stock = Warehouse::receive(150)
+    $quantity = 150;
+
+    $stock = Warehouse::receive($quantity)
         ->of($this->inventory)
         ->into($this->location)
         ->execute();
 
     expect($stock)->not()->toBeNull();
-    expect($stock->quantity)->toBe(150);
+    expect($stock->quantity)->toBe($quantity);
     expect($stock->location->id)->toBe($this->location->id);
 });
 
