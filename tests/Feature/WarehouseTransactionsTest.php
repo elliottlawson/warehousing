@@ -28,11 +28,18 @@ it('can receive new inventory into the default location', function () {
 
     $batch = $stock->transactions->first()->batch;
 
+    $destination_stock = Stock::query()
+        ->ofInventory($stock->inventory)
+        ->inLocation($batch->sourceTransaction()->location)
+        ->first();
+
     expect($stock)->not()->toBeNull();
     expect($stock->quantity)->toBe($quantity);
     expect($stock->location->name)->toBe(config('warehouse.receiving.destination'));
     expect($batch->sourceTransaction()->quantity)->toBe($quantity);
     expect($batch->sourceTransaction()->location->name)->toBe(config('warehouse.receiving.source'));
+    expect($destination_stock)->not()->toBeNull();
+    expect($destination_stock->quantity)->toBe(0);
 });
 
 it('can receive new inventory into a set location', function () {
@@ -46,6 +53,31 @@ it('can receive new inventory into a set location', function () {
     expect($stock)->not()->toBeNull();
     expect($stock->quantity)->toBe($quantity);
     expect($stock->location->id)->toBe($this->location->id);
+});
+
+it('can rollback a receive transaction', function () {
+    $quantity = 1000;
+
+    $stock = Warehouse::receive($quantity)
+        ->of($this->inventory)
+        ->into($this->location)
+        ->execute();
+
+    $batch = $stock->batch();
+
+    $reverted = Warehouse::rollback($batch);
+
+    $stock->refresh();
+
+    $destination_stock = Stock::query()
+        ->ofInventory($stock->inventory)
+        ->inLocation($batch->sourceTransaction()->location)
+        ->first();
+
+    expect($reverted)->not()->toBeNull();
+    expect($stock->quantity)->toBe(0);
+    expect($destination_stock)->not()->toBeNull();
+    expect($destination_stock->quantity)->toBe($quantity);
 });
 
 it('can add stock to an existing location', function () {

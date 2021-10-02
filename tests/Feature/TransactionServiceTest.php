@@ -94,17 +94,41 @@ it('can rollback a move transaction', function () {
 
     $reverted_batch = Warehouse::rollback($batch);
 
-    ray($reverted_batch->transactions->toArray());
-
     expect($reverted_batch)->not()->toBeNull();
     expect($batch->reverted_at)->not()->toBeNull();
     expect($batch->transactions)
-        ->each(fn ($transaction) => $transaction->reverted_at)
-        ->not()->toBeNull();
+        ->each(fn ($transaction) => $transaction->reverted_at->not()->toBeNull());
     expect($reverted_batch->transactions)->not()->toBeNull();
     expect($reverted_batch->transactions->count())->toBe(2);
     expect($reverted_batch->sourceTransaction()->location->id)
         ->toBe($batch->destinationTransaction()->location->id);
     expect($reverted_batch->destinationTransaction()->location->id)
         ->toBe($batch->sourceTransaction()->location->id);
+});
+
+it('can rollback a receive transaction', function () {
+    $quantity = 5000;
+    $location = Location::factory()->create();
+
+    $stock = Warehouse::receive($quantity)
+        ->of($this->inventory)
+        ->into($location)
+        ->execute();
+
+    $batch = $stock->batch();
+
+    $reverted_batch = Warehouse::rollback($batch);
+
+    $stock->refresh();
+
+    expect($reverted_batch)->not()->toBeNull();
+    expect($stock->transactions->count())->toBe(2);
+    expect($batch->reverted_at)->not()->toBeNull();
+    expect($batch->transactions)->each(fn ($transaction) => $transaction->reverted_at->not()->toBeNull());
+    expect($reverted_batch->transactions)->not()->toBeNull();
+    expect($reverted_batch->transactions->count())->toBe(2);
+    expect($reverted_batch->sourceTransaction()->location->id)->toBe($batch->destinationTransaction()->location->id);
+    expect($reverted_batch->destinationTransaction()->location->id)->toBe($batch->sourceTransaction()->location->id);
+    expect($reverted_batch->sourceTransaction()->quantity)->toBe($quantity);
+    expect($reverted_batch->destinationTransaction()->quantity)->toBe($quantity);
 });
