@@ -5,116 +5,107 @@ namespace App\Services;
 use App\Enums\TransactionDirection;
 use App\Enums\TransactionType;
 use App\Models\Batch;
-use App\Models\Location;
 use App\Models\Stock;
 use App\Models\Transactions;
+use App\Traits\Makeable;
 use Illuminate\Support\Carbon;
+use RuntimeException;
 
 class Transaction
 {
+    use Makeable;
+
+    protected ?Batch $old_batch;
+    protected Batch $batch;
+    protected TransactionType $type;
+    protected Stock $source_stock;
+    protected Stock $destination_stock;
+    protected int $quantity;
+    protected Carbon $timestamp;
+
+    public function __construct()
+    {
+        $this->timestamp = now();
+
+        $this->createBatch();
+    }
+
     public static function record(
         TransactionType $type,
-        ?Location $source,
-        ?Location $target,
-        Stock $stock,
-        int $quantity
-    ): void {
+        int $quantity,
+        Stock $source_stock,
+        Stock $destination_stock,
+        Batch $rollback_batch = null,
+    ): Batch {
+        $self = self::make();
+
+        $self->type              = $type;
+        $self->quantity          = $quantity;
+        $self->old_batch         = $rollback_batch;
+        $self->source_stock      = $source_stock;
+        $self->destination_stock = $destination_stock;
+
         if ($type->is(TransactionType::ROLLBACK())) {
-            return;
+            if (is_null($self->old_batch)) {
+                throw new RuntimeException('Batch is a required parameter for preforming a rollback');
+            }
+
+            $self->markPreviousBatchAsReverted();
         }
 
-        self::createTransaction($type, $source, $target, $stock, $quantity);
+        $self->createTransactions();
+
+        return $self->batch;
     }
 
-    private static function createTransaction(
-        TransactionType $type,
-        ?Location $source,
-        ?Location $destination,
-        Stock $stock,
-        int $quantity
-    ): void {
-        $batch = self::initializeBatch();
-
-        $source_transaction = Transactions::make([
-            'direction' => TransactionDirection::FROM,
-            'type'      => $type,
-            'quantity'  => $quantity,
-        ]);
-
-        $target_transaction = Transactions::make([
-            'direction' => TransactionDirection::TO,
-            'type'      => $type,
-            'quantity'  => $quantity,
-        ]);
-
-        $source_transaction->location()->associate($source);
-        $target_transaction->location()->associate($destination);
-
-        $source_transaction->batch()->associate($batch);
-        $target_transaction->batch()->associate($batch);
-
-        $stock->transactions()->saveMany([
-            $source_transaction,
-            $target_transaction,
-        ]);
-    }
-
-    public static function rollback(Batch $batch, Stock $stock): Batch
+    public function markPreviousBatchAsReverted(): void
     {
-        $new_batch = self::rollbackBatchAndReplace($batch);
+        $this->old_batch->update(['reverted_at' => $this->timestamp]);
 
-        self::createRollbackTransactions($batch, $new_batch, $stock);
+        $this->old_batch->transactions->each->update(['reverted_at' => $this->timestamp]);
 
-        return $new_batch;
+        $this->batch->reverted()->associate($this->old_batch);
     }
 
-    public static function rollbackBatchAndReplace(Batch $old_batch): Batch
+    private function createTransactions(): void
     {
-        $timestamp = now();
-
-        $old_batch->update(['reverted_at' => $timestamp]);
-
-        $old_batch->transactions->each->update(['reverted_at' => $timestamp]);
-
-        return tap(self::initializeBatch($timestamp), static fn ($batch) => $batch->reverted()->associate($old_batch));
+        $this->createSourceTransaction();
+        $this->createDestinationTransaction();
     }
 
-    private static function createRollbackTransactions(Batch $old_batch, Batch $new_batch, Stock $stock): void
+    private function createSourceTransaction(): void
     {
-        $original_source_transaction = $old_batch->sourceTransaction();
-        $original_target_transaction = $old_batch->destinationTransaction();
-
-        self::buildTransaction(TransactionDirection::FROM(), $original_target_transaction, $new_batch, $original_target_transaction->transactable);
-        self::buildTransaction(TransactionDirection::TO(), $original_source_transaction, $new_batch, $stock);
+        $this->createTransaction(TransactionDirection::FROM());
     }
 
-    private static function buildTransaction(
-        TransactionDirection $type,
-        Transactions $template,
-        Batch $batch,
-        Stock $stock,
-    ) {
-        tap(Transactions::make(), static function (Transactions $transaction) use ($type, $template, $batch, $stock) {
-            $transaction
-                ->fill([
-                    'type'        => $template->type,
-                    'direction'   => $type,
-                    'quantity'    => $template->quantity,
-                    'location_id' => $template->location_id,
-                    'batch_id'    => $batch->id,
-                    'created_at'  => $batch->created_at,
-                    'updated_at'  => $batch->updated_at,
-                ])
-                ->transactable()->associate($stock)
-                ->save();
-        });
-    }
-
-    private static function initializeBatch(Carbon $timestamp = null): Batch
+    private function createDestinationTransaction(): void
     {
-        return Batch::create([
-            'created_at' => $timestamp ?? now(),
-            'updated_at' => $timestamp ?? now(),
+        $this->createTransaction(TransactionDirection::TO());
+    }
+
+    private function createTransaction(TransactionDirection $direction): void
+    {
+        $stock = $direction->isSource() ? $this->source_stock : $this->destination_stock;
+
+        Transactions::make()
+            ->fill([
+                'type'        => $this->type,
+                'direction'   => $direction,
+                'quantity'    => $this->quantity,
+                'location_id' => $stock->location_id,
+                'batch_id'    => $this->batch->id,
+                'created_at'  => $this->timestamp,
+                'updated_at'  => $this->timestamp,
+            ])
+            ->transactable()->associate($stock)
+            ->save();
+    }
+
+    private function createBatch(): void
+    {
+        $this->batch = Batch::create([
+            'created_at' => $this->timestamp,
+            'updated_at' => $this->timestamp,
         ]);
     }
 }

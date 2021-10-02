@@ -11,7 +11,7 @@ class CreateStockTable extends Migration
         Schema::create('stocks', function (Blueprint $table) {
             $table->id();
             $table->foreignId('inventory_id')->constrained('inventory');
-            $table->bigInteger('quantity');
+            $table->bigInteger('quantity')->default(0);
             $table->foreignId('location_id')->constrained();
             $table->string('lot')->nullable();
             $table->timestamps();

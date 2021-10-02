@@ -81,10 +81,7 @@ it('can record a purge transaction', function () {
     expect($stock->quantity)->toBe($this->total_stock - $quantity);
 });
 
-/**
- * Check if locations are deleted and restore them if so
- */
-it('can rollback a transaction', function () {
+it('can rollback a move transaction', function () {
     $location = Location::factory()->create();
 
     $batch = Warehouse::move(100)
@@ -92,14 +89,19 @@ it('can rollback a transaction', function () {
         ->from($this->location)
         ->into($location)
         ->execute()
-        ->batch(); // stock should not be null
+        ->batch();
 
     $reverted_batch = Warehouse::rollback($batch);
 
+    expect($reverted_batch)->not()->toBeNull();
+    expect($batch->reverted_at)->not()->toBeNull();
+    expect($batch->transactions)
+        ->each(fn ($transaction) => $transaction->reverted_at)
+        ->not()->toBeNull();
     expect($reverted_batch->transactions)->not()->toBeNull();
     expect($reverted_batch->transactions->count())->toBe(2);
-    expect($reverted_batch->sourceTransaction()->location->name)
-        ->toBe($batch->destinationTransaction()->location->name);
-    expect($reverted_batch->destinationTransaction()->location->name)
-        ->toBe($batch->sourceTransaction()->location->name);
+    expect($reverted_batch->sourceTransaction()->location->id)
+        ->toBe($batch->destinationTransaction()->location->id);
+    expect($reverted_batch->destinationTransaction()->location->id)
+        ->toBe($batch->sourceTransaction()->location->id);
 });

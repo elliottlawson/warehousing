@@ -51,36 +51,51 @@ it('can add stock to an existing location', function () {
 
 it('can move inventory to a location', function () {
     $location = Location::factory()->create();
+    $quantity = 100;
 
-    $stock = Warehouse::move(100)
+    $stock = Warehouse::move($quantity)
         ->of($this->inventory, $this->lot)
         ->from($this->location)
         ->into($location)
         ->execute();
 
-    expect($this->stock->refresh()->quantity)->toBe($this->total_stock - 100);
+    expect($this->stock->refresh()->quantity)->toBe($this->total_stock - $quantity);
     expect($stock->location_id)->toBe($location->id);
-    expect($stock->quantity)->toBe(100);
+    expect($stock->quantity)->toBe($quantity);
+    expect($stock->lot)->toBe($this->stock->lot);
+});
+
+it('can move inventory to a location even if the stock has been deleted', function () {
+    $location = Location::factory()->create();
+    $quantity = 200;
+
+    $this->stock->delete();
+
+    $stock = Warehouse::move($quantity)
+        ->of($this->inventory, $this->lot)
+        ->from($this->location)
+        ->into($location)
+        ->execute();
+
+    expect($this->stock->refresh()->quantity)->toBe($this->total_stock - $quantity);
+    expect($stock->location_id)->toBe($location->id);
+    expect($stock->quantity)->toBe($quantity);
     expect($stock->lot)->toBe($this->stock->lot);
 });
 
 it('can rollback a move transaction', function () {
     $location = Location::factory()->create();
-    $batch    = Warehouse::move(100)
+
+    $batch = Warehouse::move(100)
         ->of($this->inventory, $this->lot)
         ->from($this->location)
         ->into($location)
         ->execute()
         ->batch();
 
-    $rollback_batch = Warehouse::rollback($batch);
+    Warehouse::rollback($batch);
 
-    expect($rollback_batch)->not()->toBeNull();
-    expect($batch->reverted_at)->not()->toBeNull();
-    expect($batch->transactions)
-        ->each(fn ($transaction) => $transaction->reverted_at)
-        ->not()->toBeNull();
-    expect($rollback_batch->destinationTransaction()->location->id)->toBe($this->location->id);
+    expect($this->stock->refresh()->quantity)->toBe($this->total_stock);
 });
 
 it('can purge some stock from a location', function () {
