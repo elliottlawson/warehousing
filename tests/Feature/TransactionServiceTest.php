@@ -72,14 +72,19 @@ it('can record a purge transaction', function () {
         ->from($this->location)
         ->execute();
 
-    expect($stock->transactions)->not()->toBeNull();
-    expect($stock->transactions->count())->toBe(2);
+    $batch = $stock->batch();
 
-    $to_transaction = $stock->destinationTransaction();
+    expect($stock->transactions)
+        ->not()->toBeNull()
+        ->count()->toBe(1);
 
-    expect($to_transaction->location->name)->toBe(config('warehouse.purge.destination'));
-    expect($to_transaction->quantity)->toBe($quantity);
-    expect($stock->quantity)->toBe($this->total_stock - $quantity);
+    expect($batch->sourceTransaction())
+        ->quantity->toBe($quantity)
+        ->location->id->toBe($this->location->id);
+
+    expect($batch->destinationTransaction())
+        ->quantity->toBe($quantity)
+        ->location->name->toBe(config('warehouse.purge.destination'));
 });
 
 it('can rollback a move transaction', function () {

@@ -3,28 +3,33 @@
 namespace App\Services\Warehouse\Actions;
 
 use App\Models\Stock;
+use App\Services\LocationService;
+use App\Services\Transaction;
 use App\Services\Warehouse\TransactionDTO;
 
 class Purge extends WarehouseActionsBase
 {
     public function handle(TransactionDTO $data): Stock
     {
-        $stock = Stock::query()
-            ->hasLotNumbers($data->lot)
-            ->ofInventory($data->inventory)
-            ->inLocation($data->source)
-            ->firstOrFail();
+        $source_stock = self::retrieveStockFromLocation($data->source, $data);
 
-        if ($stock->quantity === $data->quantity) {
-            $stock->delete();
-        } else {
-            // Note: the location will go negative if the amount purged is greater than the quantity on hand
-            $stock->quantity -= $data->quantity;
-            $stock->save();
+        $source_stock->quantity -= $data->quantity;
+        $source_stock->save();
+
+        $destination = LocationService::defaultPurgeDestination();
+
+        $destination_stock = Stock::withTrashed()
+            ->firstOrCreate([
+                'location_id'  => $destination->id,
+                'inventory_id' => $data->inventory->id,
+            ]);
+
+        if ($destination_stock->trashed()) {
+            $destination_stock->restore();
         }
 
-//        Transaction::record($data->action, $data->source, $data->destination, $stock, $data->quantity);
+        Transaction::record($data->action, $data->quantity, $source_stock, $destination_stock);
 
-        return $stock;
+        return $source_stock;
     }
 }
