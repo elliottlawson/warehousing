@@ -93,14 +93,13 @@ it('can rollback a purge transaction', function () {
 
     expect($reverted_batch)
         ->not()->toBeNull()
-        ->transactions->count()->toBe(2);
+        ->transactions->count()->toBe(2)
+        ->sourceTransaction()->quantity->toBe($purge_quantity)
+        ->destinationTransaction()->quantity->toBe($purge_quantity);
 
     expect($batch_to_revert)
         ->reverted_at->not()->toBeNull()
         ->transactions->each(fn ($transactions) => $transactions->reverted_at->not()->toBeNull());
 
     expect($purged->quantity)->toBe($initial_quantity);
-
-    expect($reverted_batch->sourceTransaction())->quantity->toBe($purge_quantity);
-    expect($reverted_batch->destinationTransaction())->quantity->toBe($purge_quantity);
 });

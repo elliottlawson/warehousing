@@ -13,5 +13,5 @@ it('can instantiate a model')
     ->assertDatabaseHas('inventory', ['item_number' => 'Large Paperclips']);
 
 it('can create and update a model')
-    ->tap(fn() => $this->inventory->update(['item_number' => 'Small Paperclips']))
+    ->tap(fn () => $this->inventory->update(['item_number' => 'Small Paperclips']))
     ->assertDatabaseHas('inventory', ['item_number' => 'Small Paperclips']);

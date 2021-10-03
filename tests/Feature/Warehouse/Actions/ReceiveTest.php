@@ -33,13 +33,18 @@ it('can receive new inventory into the default location', function () {
         ->inLocation($batch->sourceTransaction()->location)
         ->first();
 
-    expect($stock)->not()->toBeNull();
-    expect($stock->quantity)->toBe($quantity);
-    expect($stock->location->name)->toBe(config('warehouse.receiving.destination'));
-    expect($batch->sourceTransaction()->quantity)->toBe($quantity);
-    expect($batch->sourceTransaction()->location->name)->toBe(config('warehouse.receiving.source'));
-    expect($destination_stock)->not()->toBeNull();
-    expect($destination_stock->quantity)->toBe(0);
+    expect($stock)
+        ->not()->toBeNull()
+        ->quantity->toBe($quantity)
+        ->location->name->toBe(config('warehouse.receiving.destination'));
+
+    expect($batch->sourceTransaction())
+        ->quantity->toBe($quantity)
+        ->location->name->toBe(config('warehouse.receiving.source'));
+
+    expect($destination_stock)
+        ->not()->toBeNull()
+        ->quantity->toBe(0);
 });
 
 it('can receive new inventory into a set location', function () {
@@ -50,9 +55,10 @@ it('can receive new inventory into a set location', function () {
         ->into($this->location)
         ->execute();
 
-    expect($stock)->not()->toBeNull();
-    expect($stock->quantity)->toBe($quantity);
-    expect($stock->location->id)->toBe($this->location->id);
+    expect($stock)
+        ->not()->toBeNull()
+        ->quantity->toBe($quantity)
+        ->location->id->toBe($this->location->id);
 });
 
 it('can rollback a receive transaction', function () {
@@ -76,6 +82,7 @@ it('can rollback a receive transaction', function () {
 
     expect($reverted)->not()->toBeNull();
     expect($stock->quantity)->toBe(0);
-    expect($destination_stock)->not()->toBeNull();
-    expect($destination_stock->quantity)->toBe($quantity);
+    expect($destination_stock)
+        ->not()->toBeNull()
+        ->quantity->toBe($quantity);
 });
