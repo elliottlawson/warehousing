@@ -33,36 +33,9 @@ it('can record a receive transaction', function () {
     expect($batch->transactions)->each(fn ($transaction) => $transaction->quantity->toBe($quantity));
 });
 
-it('can record a move transaction', function () {
-    $location = Location::factory()->create();
+it('can record a move transaction')->skip('Consider merging with actions test...');
 
-    $stock = Warehouse::move(100)
-        ->of($this->inventory, $this->lot)
-        ->from($this->location)
-        ->into($location)
-        ->execute();
-
-    expect($stock->transactions)->not()->toBeNull();
-    expect($stock->transactions->count())->toBe(2);
-});
-
-it('can record an add transaction', function () {
-    $quantity = 1000;
-
-    $stock = Warehouse::add($quantity)
-        ->of($this->inventory, $this->lot)
-        ->into($this->location)
-        ->execute();
-
-    expect($stock->transactions)->not()->toBeNull();
-    expect($stock->transactions->count())->toBe(2);
-
-    $from_transaction = $stock->sourceTransaction();
-
-    expect($from_transaction->location->name)->toBe(config('warehouse.add.source'));
-    expect($from_transaction->quantity)->toBe($quantity);
-    expect($stock->quantity)->toBe($this->total_stock + $quantity);
-});
+it('can record an add transaction')->skip('Consider merging with actions test...');
 
 it('can record a purge transaction', function () {
     $quantity = 200;
