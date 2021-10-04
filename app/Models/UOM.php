@@ -26,8 +26,8 @@ class UOM extends Model
         return $this->belongsTo(Inventory::class);
     }
 
-    public function type(): BelongsTo
-    {
-        return $this->belongsTo(Type::class);
-    }
+//    public function type(): BelongsTo
+//    {
+//        return $this->belongsTo(Type::class);
+//    }
 }

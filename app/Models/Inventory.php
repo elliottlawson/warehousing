@@ -6,7 +6,6 @@ use App\Traits\HasLocations;
 use App\Traits\HasStock;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Inventory extends Model
@@ -20,8 +19,8 @@ class Inventory extends Model
 
     protected $guarded = ['id'];
 
-    public function type(): BelongsTo
-    {
-        return $this->belongsTo(Type::class);
-    }
+//    public function type(): BelongsTo
+//    {
+//        return $this->belongsTo(Type::class);
+//    }
 }

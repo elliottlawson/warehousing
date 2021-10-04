@@ -12,7 +12,8 @@ class CreateTypesTable extends Migration
             $table->id();
             $table->string('name');
             $table->text('description')->nullable();
-            $table->string('abbreviation');
+            $table->string('abbreviation')->nullable();
+            $table->string('class');
             $table->timestamps();
             $table->softDeletes();
         });

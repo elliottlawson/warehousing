@@ -2,10 +2,10 @@
 
 namespace Database\Factories;
 
-use App\Models\Types\LocationType;
+use App\Models\LocationType;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
-class TypeFactory extends Factory
+class LocationTypeFactory extends Factory
 {
     /**
      * The name of the factory's corresponding model.
@@ -18,9 +18,7 @@ class TypeFactory extends Factory
     public function definition(): array
     {
         return [
-            'name'         => $this->faker->name,
-            'description'  => $this->faker->sentence(),
-            'abbreviation' => $this->faker->text(5),
+            //
         ];
     }
 }

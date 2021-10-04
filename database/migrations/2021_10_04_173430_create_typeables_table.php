@@ -4,14 +4,13 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateLocationsTable extends Migration
+class CreateTypeablesTable extends Migration
 {
     public function up(): void
     {
-        Schema::create('locations', function (Blueprint $table) {
-            $table->id();
-            $table->string('name');
-            $table->text('description')->nullable();
+        Schema::create('typeables', function (Blueprint $table) {
+            $table->foreignId('type_id')->constrained('types');
+            $table->morphs('typeable');
             $table->timestamps();
             $table->softDeletes();
         });
@@ -19,6 +18,6 @@ class CreateLocationsTable extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists('locations');
+        Schema::dropIfExists('typeables');
     }
 }
