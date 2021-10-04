@@ -10,12 +10,12 @@ class Move extends WarehouseActionsBase
 {
     public function handle(TransactionDTO $data): Stock
     {
-        $source_stock = self::retrieveStockFromLocation($data->source, $data);
+        $source_stock = self::retrieveOrCreateStockFromLocation($data->source, $data);
 
         $source_stock->quantity -= $data->quantity;
         $source_stock->save();
 
-        $destination_stock = self::retrieveStockFromLocation($data->destination, $data);
+        $destination_stock = self::retrieveOrCreateStockFromLocation($data->destination, $data);
 
         $destination_stock->quantity = $data->quantity;
         $destination_stock->save();

@@ -31,7 +31,16 @@ abstract class WarehouseActionsBase implements TransactionAction
         return Transaction::record(TransactionType::ROLLBACK(), $quantity, $source_stock, $destination_stock, $batch);
     }
 
-    protected static function retrieveStockFromLocation(Location $location, TransactionDTO $data): Stock
+    protected static function createStockInLocation(Location $location, TransactionDTO $data): Stock
+    {
+        return Stock::create([
+            'quantity'     => $data->quantity,
+            'location_id'  => $location->id,
+            'inventory_id' => $data->inventory->id,
+        ]);
+    }
+
+    protected static function retrieveOrCreateStockFromLocation(Location $location, TransactionDTO $data): Stock
     {
         $stock = Stock::withTrashed()
             ->firstOrCreate([
@@ -39,6 +48,21 @@ abstract class WarehouseActionsBase implements TransactionAction
                 'inventory_id' => $data->inventory->id,
                 'location_id'  => $location->id,
             ]);
+
+        if ($stock->trashed()) {
+            $stock->restore();
+        }
+
+        return $stock;
+    }
+
+    protected static function retrieveStockFromLocation(Location $location, TransactionDTO $data): Stock
+    {
+        $stock = Stock::withTrashed()
+            ->hasLotNumbers($data->lot)
+            ->ofInventory($data->inventory)
+            ->inLocation($location)
+            ->firstOrFail();
 
         if ($stock->trashed()) {
             $stock->restore();

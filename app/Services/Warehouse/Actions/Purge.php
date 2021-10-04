@@ -16,17 +16,7 @@ class Purge extends WarehouseActionsBase
         $source_stock->quantity -= $data->quantity;
         $source_stock->save();
 
-        $destination = LocationService::defaultPurgeDestination();
-
-        $destination_stock = Stock::withTrashed()
-            ->firstOrCreate([
-                'location_id'  => $destination->id,
-                'inventory_id' => $data->inventory->id,
-            ]);
-
-        if ($destination_stock->trashed()) {
-            $destination_stock->restore();
-        }
+        $destination_stock = self::retrieveOrCreateStockFromLocation(LocationService::defaultPurgeDestination(), $data);
 
         Transaction::record($data->action, $data->quantity, $source_stock, $destination_stock);
 

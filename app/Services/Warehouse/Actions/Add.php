@@ -3,23 +3,23 @@
 namespace App\Services\Warehouse\Actions;
 
 use App\Models\Stock;
+use App\Services\LocationService;
+use App\Services\Transaction;
 use App\Services\Warehouse\TransactionDTO;
 
 class Add extends WarehouseActionsBase
 {
     public function handle(TransactionDTO $data): Stock
     {
-        $stock = Stock::query()
-            ->hasLotNumbers($data->lot)
-            ->ofInventory($data->inventory)
-            ->inLocation($data->destination)
-            ->firstOrFail();
+        $source_stock = self::retrieveOrCreateStockFromLocation(LocationService::defaultAddSource(), $data);
 
-        $stock->quantity += $data->quantity;
-        $stock->save();
+        $destination_stock = self::retrieveStockFromLocation($data->destination, $data);
 
-//        Transaction::record($data->action, $data->quantity $data->source, $data- );
+        $destination_stock->quantity += $data->quantity;
+        $destination_stock->save();
 
-        return $stock;
+        Transaction::record($data->action, $data->quantity, $source_stock, $destination_stock);
+
+        return $destination_stock;
     }
 }
