@@ -27,3 +27,5 @@ it('can add stock to an existing location', function () {
 
     expect($stock->quantity)->toBe($this->total_stock + 100);
 });
+
+it('can record an add transaction')->skip('Add additional expectations...');

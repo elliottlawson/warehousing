@@ -30,6 +30,7 @@ it('can move inventory to a location', function () {
         ->execute();
 
     expect($this->stock->refresh()->quantity)->toBe($this->total_stock - $quantity);
+
     expect($stock)
         ->location_id->toBe($location->id)
         ->quantity->toBe($quantity)
@@ -65,7 +66,18 @@ it('can rollback a move transaction', function () {
         ->execute()
         ->batch();
 
-    Warehouse::rollback($batch);
+    $reverted_batch = Warehouse::rollback($batch);
 
     expect($this->stock->refresh()->quantity)->toBe($this->total_stock);
+    expect($reverted_batch)->not()->toBeNull();
+
+    expect($batch)
+        ->reverted_at->not()->toBeNull()
+        ->transactions->each(fn ($transaction) => $transaction->reverted_at->not()->toBeNull());
+
+    expect($reverted_batch)
+        ->transactions->not()->toBeNull()
+        ->transactions->count()->toBe(2)
+        ->sourceTransaction()->location->id->toBe($batch->destinationTransaction()->location->id)
+        ->destinationTransaction()->location->id->toBe($batch->sourceTransaction()->location->id);
 });

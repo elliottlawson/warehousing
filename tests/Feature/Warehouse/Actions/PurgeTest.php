@@ -34,9 +34,25 @@ it('can purge some stock from a location', function () {
         ->from($this->location)
         ->execute();
 
+    $purge_batch = $adjusted->transactions
+        ->firstWhere('type', TransactionType::PURGE())
+        ->batch;
+
     expect($adjusted)
         ->not()->toBeNull()
         ->quantity->toBe($initial_quantity - $purge_quantity);
+
+    expect($stock->transactions)
+        ->not()->toBeNull()
+        ->count()->toBe(2);
+
+    expect($purge_batch->sourceTransaction())
+        ->quantity->toBe($purge_quantity)
+        ->location->id->toBe($this->location->id);
+
+    expect($purge_batch->destinationTransaction())
+        ->quantity->toBe($purge_quantity)
+        ->location->name->toBe(config('warehouse.purge.destination'));
 });
 
 it('can purge all stock from a location', function () {

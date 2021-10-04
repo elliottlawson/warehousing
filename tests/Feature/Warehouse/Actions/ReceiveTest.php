@@ -1,5 +1,7 @@
 <?php
 
+use App\Enums\TransactionDirection;
+use App\Enums\TransactionType;
 use App\Models\Inventory;
 use App\Models\Location;
 use App\Models\Stock;
@@ -26,7 +28,9 @@ it('can receive new inventory into the default location', function () {
         ->of($this->inventory)
         ->execute();
 
-    $batch = $stock->transactions->first()->batch;
+    $batch = $stock->transactions
+        ->firstWhere('type', TransactionType::RECEIVE())
+        ->batch;
 
     $destination_stock = Stock::query()
         ->ofInventory($stock->inventory)
@@ -36,15 +40,20 @@ it('can receive new inventory into the default location', function () {
     expect($stock)
         ->not()->toBeNull()
         ->quantity->toBe($quantity)
-        ->location->name->toBe(config('warehouse.receiving.destination'));
-
-    expect($batch->sourceTransaction())
-        ->quantity->toBe($quantity)
-        ->location->name->toBe(config('warehouse.receiving.source'));
+        ->location->name->toBe(config('warehouse.receiving.destination'))
+        ->transactions->not()->toBeNull();
 
     expect($destination_stock)
         ->not()->toBeNull()
         ->quantity->toBe(0);
+
+    expect($batch)
+        ->transactions->count()->toBe(2)
+        ->transactions->each(fn ($transaction) => $transaction->quantity->toBe($quantity));
+
+    expect($batch->sourceTransaction())
+        ->quantity->toBe($quantity)
+        ->location->name->toBe(config('warehouse.receiving.source'));
 });
 
 it('can receive new inventory into a set location', function () {
@@ -69,20 +78,41 @@ it('can rollback a receive transaction', function () {
         ->into($this->location)
         ->execute();
 
-    $batch = $stock->batch();
+    $receive_batch = $stock->transactions
+        ->firstWhere('type', TransactionType::RECEIVE())
+        ->batch;
 
-    $reverted = Warehouse::rollback($batch);
+    $reverted_batch = Warehouse::rollback($receive_batch);
 
     $stock->refresh();
 
-    $destination_stock = Stock::query()
-        ->ofInventory($stock->inventory)
-        ->inLocation($batch->sourceTransaction()->location)
-        ->first();
+    /** @var Stock $destination_stock */
+    $destination_stock = $reverted_batch->transactions
+        ->firstWhere('direction', TransactionDirection::TO())
+        ->transactable;
 
-    expect($reverted)->not()->toBeNull();
-    expect($stock->quantity)->toBe(0);
+    expect($stock)
+        ->quantity->toBe(0)
+        ->transactions->count()->toBe(2);
+
+    expect($receive_batch)
+        ->reverted_at->not()->toBeNull()
+        ->transactions->each(fn ($transaction) => $transaction->reverted_at->not()->toBeNull());
+
     expect($destination_stock)
         ->not()->toBeNull()
         ->quantity->toBe($quantity);
+
+    expect($reverted_batch)
+        ->not()->toBeNull()
+        ->transactions->not()->toBeNull()
+        ->transactions->count()->toBe(2);
+
+    expect($reverted_batch->sourceTransaction())
+        ->quantity->toBe($quantity)
+        ->location->id->toBe($receive_batch->destinationTransaction()->location->id);
+
+    expect($reverted_batch->destinationTransaction())
+        ->quantity->toBe($quantity)
+        ->location->id->toBe($receive_batch->sourceTransaction()->location->id);
 });
