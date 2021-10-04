@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Batch;
 use App\Models\Inventory;
 use App\Models\Location;
 use App\Models\Stock;
@@ -20,12 +21,51 @@ beforeEach(function () {
 });
 
 it('can add stock to an existing location', function () {
-    $stock = Warehouse::add(100)
+    $quantity = 100;
+
+    $stock = Warehouse::add($quantity)
         ->of($this->inventory, $this->lot)
         ->into($this->location)
         ->execute();
 
-    expect($stock->quantity)->toBe($this->total_stock + 100);
+    /** @var Batch $batch */
+    $batch = $stock->destinationTransaction()->batch;
+
+    expect($stock)
+        ->quantity->toBe($this->total_stock + $quantity)
+        ->transactions->not()->toBeNull()
+        ->transactions->count()->toBe(1);
+
+    expect($batch)
+        ->sourceTransaction()->quantity->toBe($quantity)
+        ->sourceTransaction()->location->name->toBe(config('warehouse.add.source'))
+        ->destinationTransaction()->quantity->toBe($quantity);
 });
 
-it('can record an add transaction')->skip('Add additional expectations...');
+it('can rollback an add transaction', function () {
+    $quantity = 200;
+
+    $stock = Warehouse::add($quantity)
+        ->of($this->inventory, $this->lot)
+        ->into($this->location)
+        ->execute();
+
+    /** @var Batch $batch */
+    $batch = $stock->destinationTransaction()->batch;
+
+    $reverted_batch = Warehouse::rollback($batch);
+
+    expect($stock->refresh())
+        ->quantity->toBe($this->total_stock)
+        ->transactions->count()->toBe(2);
+
+    expect($batch->refresh())
+        ->reverted_at->not()->toBeNull()
+        ->transactions->each(fn ($transaction) => $transaction->reverted_at->not()->toBeNull());
+
+    expect($reverted_batch)
+        ->transactions->not()->toBeNull()
+        ->transactions->count()->toBe(2)
+        ->sourceTransaction()->location->id->toBe($batch->destinationTransaction()->location->id)
+        ->destinationTransaction()->location->id->toBe($batch->sourceTransaction()->location->id);
+});

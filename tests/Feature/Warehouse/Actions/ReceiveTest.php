@@ -1,6 +1,5 @@
 <?php
 
-use App\Enums\TransactionDirection;
 use App\Enums\TransactionType;
 use App\Models\Inventory;
 use App\Models\Location;
@@ -86,11 +85,6 @@ it('can rollback a receive transaction', function () {
 
     $stock->refresh();
 
-    /** @var Stock $destination_stock */
-    $destination_stock = $reverted_batch->transactions
-        ->firstWhere('direction', TransactionDirection::TO())
-        ->transactable;
-
     expect($stock)
         ->quantity->toBe(0)
         ->transactions->count()->toBe(2);
@@ -98,10 +92,6 @@ it('can rollback a receive transaction', function () {
     expect($receive_batch)
         ->reverted_at->not()->toBeNull()
         ->transactions->each(fn ($transaction) => $transaction->reverted_at->not()->toBeNull());
-
-    expect($destination_stock)
-        ->not()->toBeNull()
-        ->quantity->toBe($quantity);
 
     expect($reverted_batch)
         ->not()->toBeNull()
@@ -114,5 +104,6 @@ it('can rollback a receive transaction', function () {
 
     expect($reverted_batch->destinationTransaction())
         ->quantity->toBe($quantity)
-        ->location->id->toBe($receive_batch->sourceTransaction()->location->id);
+        ->location->id->toBe($receive_batch->sourceTransaction()->location->id)
+        ->transactable->quantity->toBe($quantity);
 });
