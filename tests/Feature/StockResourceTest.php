@@ -6,14 +6,14 @@ use App\Models\Stock;
 
 beforeEach(function () {
     $this->inventory = Inventory::factory()->create();
-    $this->location  = Location::factory()->create();
-    $this->lot       = '12345';
-    $this->stock     = Stock::factory()
+    $this->location = Location::factory()->create();
+    $this->lot = '12345';
+    $this->stock = Stock::factory()
         ->for($this->inventory)
         ->for($this->location)
         ->create([
             'quantity' => 100,
-            'lot'      => $this->lot,
+            'lot' => $this->lot,
         ]);
 });
 

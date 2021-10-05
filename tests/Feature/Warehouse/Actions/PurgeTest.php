@@ -7,22 +7,22 @@ use App\Models\Stock;
 use App\Services\Warehouse;
 
 beforeEach(function () {
-    $this->inventory   = Inventory::factory()->create();
-    $this->location    = Location::factory()->create();
+    $this->inventory = Inventory::factory()->create();
+    $this->location = Location::factory()->create();
     $this->total_stock = 1000;
-    $this->lot         = '12345';
-    $this->stock       = Stock::factory()
+    $this->lot = '12345';
+    $this->stock = Stock::factory()
         ->for($this->inventory)
         ->for($this->location)
         ->create([
             'quantity' => $this->total_stock,
-            'lot'      => $this->lot,
+            'lot' => $this->lot,
         ]);
 });
 
 it('can purge some stock from a location', function () {
     $initial_quantity = 5000;
-    $purge_quantity   = 1500;
+    $purge_quantity = 1500;
 
     $stock = Warehouse::receive($initial_quantity)
         ->of($this->inventory)
@@ -84,7 +84,7 @@ it('can rollback a purge transaction', function () {
     $inventory = Inventory::factory()->create();
 
     $initial_quantity = 5000;
-    $purge_quantity   = 1500;
+    $purge_quantity = 1500;
 
     $received = Warehouse::receive($initial_quantity)
         ->of($inventory)

@@ -6,16 +6,16 @@ use App\Models\Stock;
 use App\Services\Warehouse;
 
 beforeEach(function () {
-    $this->inventory   = Inventory::factory()->create();
-    $this->location    = Location::factory()->create();
+    $this->inventory = Inventory::factory()->create();
+    $this->location = Location::factory()->create();
     $this->total_stock = 1000;
-    $this->lot         = '12345';
-    $this->stock       = Stock::factory()
+    $this->lot = '12345';
+    $this->stock = Stock::factory()
         ->for($this->inventory)
         ->for($this->location)
         ->create([
             'quantity' => $this->total_stock,
-            'lot'      => $this->lot,
+            'lot' => $this->lot,
         ]);
 });
 
@@ -38,7 +38,7 @@ it('can check the on-hand quantity of inventory across locations', function () {
 });
 
 it('can check availability of stock by lot number', function () {
-    $lot        = 4455;
+    $lot = 4455;
     $quantity_1 = 5000;
     $quantity_2 = 2500;
     $quantity_3 = 3000;
@@ -48,7 +48,7 @@ it('can check availability of stock by lot number', function () {
         ->forLocation()
         ->create([
             'quantity' => $quantity_1,
-            'lot'      => $lot,
+            'lot' => $lot,
         ]);
 
     $stock_with_one_location = Warehouse::onHandOflot($stock_1->inventory, $lot);
@@ -60,7 +60,7 @@ it('can check availability of stock by lot number', function () {
         ->forLocation()
         ->create([
             'quantity' => $quantity_2,
-            'lot'      => $lot,
+            'lot' => $lot,
         ]);
 
     $stock_with_multiple_locations = Warehouse::onHandOfLot($stock_2->inventory, $lot);
