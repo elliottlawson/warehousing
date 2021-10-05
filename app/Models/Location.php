@@ -8,6 +8,7 @@ use App\Traits\HasStock;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Location extends Model
@@ -19,8 +20,8 @@ class Location extends Model
 
     protected $guarded = ['id'];
 
-    public function type(): BelongsTo
+    public function type(): MorphTo
     {
-        return $this->belongsTo(LocationType::class);
+        return $this->morphTo(LocationType::class, 'typeable');
     }
 }

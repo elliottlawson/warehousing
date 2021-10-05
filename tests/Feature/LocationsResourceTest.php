@@ -33,9 +33,13 @@ it('can handle typing properly', function () {
     $location_types  = LocationType::all()->toArray();
     $inventory_types = InventoryType::all()->toArray();
 
-    $location = Location::factory()
-        ->for($row)
-        ->create();
+    $location = Location::factory()->create();
 
-    ray($location);
+    $location->type()->attach($row->id);
+
+    ray($location->load('type'));
+
+//    ray($row);
+
+
 });

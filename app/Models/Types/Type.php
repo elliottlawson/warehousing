@@ -23,6 +23,8 @@ abstract class Type extends Model
 
     protected static function booted(): void
     {
+        static::creating(fn ($query) => $query->class = self::alias());
+
         static::addGlobalScope('type', function (Builder $builder) {
             $builder->whereClass(self::alias());
         });
