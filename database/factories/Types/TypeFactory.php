@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 abstract class TypeFactory extends Factory
 {
     /**
-     * Note: When extending define a $model property with the appropriate class name
+     * Note: When extending, define a $model property with the appropriate class name
      */
 
     /**

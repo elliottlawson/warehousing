@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Inventory;
 use App\Models\Location;
 use App\Models\Types\LocationType;
 
@@ -15,11 +16,11 @@ it('can create and update a modal')
     ->tap(fn () => $this->location->update(['name' => 'long term storage']))
     ->assertDatabaseHas('locations', ['name' => 'long term storage']);
 
-// it('has a good relationship with locations')o
-//     ->tap(fn () => $this->location->inventory()->attach(Inventory::factory()->create()))
-//     ->expect(fn () => $this->location->refresh()->inventory->first())
-//     ->toBeInstanceOf(Inventory::class);
-//
+it('has a good relationship with locations')
+    ->tap(fn () => $this->location->inventory()->attach(Inventory::factory()->create()))
+    ->expect(fn () => $this->location->refresh()->inventory->first())
+    ->toBeInstanceOf(Inventory::class);
+
 
 it('can handle typing properly', function () {
     $location = Location::factory()
