@@ -2,9 +2,7 @@
 
 namespace App\Models\Types;
 
-use Database\Factories\TypeFactory;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
@@ -21,22 +19,19 @@ abstract class Type extends Model
 
     protected $hidden = ['class'];
 
+    protected static string $factory;
+
     protected static function booted(): void
     {
-        static::creating(fn ($query) => $query->class = self::alias());
+        static::creating(fn ($query) => $query->class = self::morphName());
 
         static::addGlobalScope('type', function (Builder $builder) {
-            $builder->whereClass(self::alias());
+            $builder->whereClass(self::morphName());
         });
     }
 
-    protected static function newFactory(): Factory
-    {
-        return TypeFactory::new(['class' => self::alias()]);
-    }
-
     // Returns the morph name of the current class
-    protected static function alias(): string
+    public static function morphName(): string
     {
         return array_search(static::class, Relation::morphMap(), true);
     }

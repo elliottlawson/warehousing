@@ -2,8 +2,10 @@
 
 namespace App\Models;
 
+use App\Models\Types\InventoryType;
 use App\Traits\HasLocations;
 use App\Traits\HasStock;
+use App\Traits\Typeable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -14,13 +16,11 @@ class Inventory extends Model
     use HasLocations;
     use HasStock;
     use SoftDeletes;
+    use Typeable;
 
     protected $table = 'inventory';
 
     protected $guarded = ['id'];
 
-//    public function type(): BelongsTo
-//    {
-//        return $this->belongsTo(Type::class);
-//    }
+    protected static string $typeClass = InventoryType::class;
 }

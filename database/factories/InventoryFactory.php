@@ -21,7 +21,6 @@ class InventoryFactory extends Factory
         return [
             'item_number' => $this->faker->randomNumber(9),
             'description' => $this->faker->sentence(),
-            'type_id' => Type::factory(),
         ];
     }
 

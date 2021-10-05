@@ -14,7 +14,7 @@ class CreateInventoriesTable extends Migration
             $table->text('description')->nullable();
             $table->string('sku')->nullable();
             $table->unsignedBigInteger('weight')->nullable();
-            $table->foreignId('type_id')->constrained('types');
+            $table->foreignId('type_id')->nullable()->constrained(); // @todo - should this be nullable?
             $table->timestamps();
             $table->softDeletes();
         });

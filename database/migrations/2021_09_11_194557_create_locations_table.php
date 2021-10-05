@@ -12,6 +12,7 @@ class CreateLocationsTable extends Migration
             $table->id();
             $table->string('name');
             $table->text('description')->nullable();
+            $table->foreignId('type_id')->nullable()->constrained(); // @todo - should this be nullable?
             $table->timestamps();
             $table->softDeletes();
         });

@@ -1,16 +1,14 @@
 <?php
 
-namespace Database\Factories;
+namespace Database\Factories\Types;
 
-use App\Models\Types\LocationType;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
-class TypeFactory extends Factory
+abstract class TypeFactory extends Factory
 {
     /**
-     * The name of the factory's corresponding model.
+     * Note: When extending define a $model property with the appropriate class name
      */
-    protected $model = LocationType::class;
 
     /**
      * Define the model's default state.
