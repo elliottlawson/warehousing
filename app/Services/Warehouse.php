@@ -72,7 +72,7 @@ class Warehouse
             ->sum('quantity');
     }
 
-    public function of(Inventory $inventory, int $lot = null): self
+    public function of(Inventory $inventory, string $lot = null): self
     {
         $this->data->inventory = $inventory;
 

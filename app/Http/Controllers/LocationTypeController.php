@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\LocationType;
+use App\Models\Types\LocationType;
 use Illuminate\Http\Request;
 
 class LocationTypeController extends Controller
