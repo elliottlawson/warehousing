@@ -24,10 +24,8 @@ class Stock extends Model
 
     protected $guarded = ['id'];
 
-    public static function boot(): void
+    public static function booted(): void
     {
-        parent::boot();
-
         // We want a 'default' lot number if none is set
         static::creating(fn ($query) => $query->lot ??= self::generateLot());
     }
