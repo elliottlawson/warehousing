@@ -11,7 +11,7 @@ on:
       - 'phpstan.neon'
 
 jobs:
-  psalm:
+  larastan:
     name: larastan
     runs-on: ubuntu-latest
     steps:
