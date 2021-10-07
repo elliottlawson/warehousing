@@ -13,6 +13,6 @@ parameters:
         - '#Unsafe usage of new static#'
 
     excludePaths:
-        - ./*/*/FileToBeExcluded.php
+        - ./tests/Feature/Warehouse/Actions/AddTest.php
 
     checkMissingIterableValueType: false

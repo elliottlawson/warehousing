@@ -10,22 +10,28 @@ jobs:
       matrix:
         os: [ ubuntu-latest ]
         php: [ 8.0 ]
-        laravel: [ 8.59 ]
-        dependency-version: [ prefer-lowest, prefer-stable ]
+        laravel: [ ^8.59 ]
         include:
           - laravel: ^8.59
             testbench: ^6.15
 
     name: P${{ matrix.php }} - L${{ matrix.laravel }} - ${{ matrix.dependency-version }}
 
+    services:
+      mysql:
+        image: mysql:8
+        env:
+          MYSQL_ALLOW_EMPTY_PASSWORD: yes
+          MYSQL_DATABASE: warehousing_testing
+        ports:
+          - 3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Install SQLite 3
-        run: |
-          sudo apt-get update
-          sudo apt-get install sqlite3
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
@@ -37,10 +43,13 @@ jobs:
         run: |
           composer require "laravel/framework:${{ matrix.laravel }}" "orchestra/testbench:${{ matrix.testbench }}" --no-interaction --no-update
           composer update --${{ matrix.dependency-version }} --prefer-dist --no-interaction
+
       - name: Setup Problem Matches
         run: |
           echo "::add-matcher::${{ runner.tool_cache }}/php.json"
           echo "::add-matcher::${{ runner.tool_cache }}/phpunit.json"
 
       - name: Execute tests
-        run: vendor/bin/pest
+        run: vendor/bin/pest --verbose
+        env:
+          DB_PORT: ${{ job.services.mysql.ports[3306] }}
