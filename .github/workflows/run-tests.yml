@@ -23,9 +23,9 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Install SQLite 3
-          run: |
-            sudo apt-get update
-            sudo apt-get install sqlite3
+        run: |
+          sudo apt-get update
+          sudo apt-get install sqlite3
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
@@ -35,9 +35,9 @@ jobs:
           coverage: none
 
       - name: Install dependencies
-          run: |
-            composer require "laravel/framework:${{ matrix.laravel }}" "orchestra/testbench:${{ matrix.testbench }}" --no-interaction --no-update
-            composer update --${{ matrix.stability }} --prefer-dist --no-interaction
+        run: |
+          composer require "laravel/framework:${{ matrix.laravel }}" "orchestra/testbench:${{ matrix.testbench }}" --no-interaction --no-update
+          composer update --${{ matrix.stability }} --prefer-dist --no-interaction
 
       - name: Setup problem matchers
         run: |
