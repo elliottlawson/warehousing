@@ -3,18 +3,18 @@ name: Run Tests
 on: [ push, pull_request ]
 
 jobs:
-  test:
+  tests:
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         os: [ ubuntu-latest ]
         php: [ 8.0 ]
-        laravel: [ ^8.59 ]
-        stability: [ prefer-latest, prefer-stable ]
+        laravel: [ 8.59 ]
+        dependency-version: [ prefer-lowest, prefer-stable ]
         include:
-          - laravel: 8.*
-            testbench: ^6.6
+          - laravel: ^8.59
+            testbench: ^6.15
 
     name: P${{ matrix.php }} - L${{ matrix.laravel }} - ${{ matrix.dependency-version }}
 
@@ -26,20 +26,18 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install sqlite3
-
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php }}
-          extensions: dom, curl, libxml, mbstring, zip, pcntl, pdo, sqlite, pdo_sqlite, bcmath, soap, intl, gd, exif, iconv, imagick, fileinfo
+          extensions: curl, mbstring, zip, pcntl, pdo, sqlite, pdo_sqlite, iconv
           coverage: none
 
       - name: Install dependencies
         run: |
           composer require "laravel/framework:${{ matrix.laravel }}" "orchestra/testbench:${{ matrix.testbench }}" --no-interaction --no-update
-          composer update --${{ matrix.stability }} --prefer-dist --no-interaction
-
-      - name: Setup problem matchers
+          composer update --${{ matrix.dependency-version }} --prefer-dist --no-interaction
+      - name: Setup Problem Matches
         run: |
           echo "::add-matcher::${{ runner.tool_cache }}/php.json"
           echo "::add-matcher::${{ runner.tool_cache }}/phpunit.json"
