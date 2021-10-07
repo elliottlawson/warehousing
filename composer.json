@@ -18,6 +18,8 @@
     "laravel/tinker": "^2.5"
   },
   "require-dev": {
+    "roave/security-advisories": "dev-latest"
+    ,
     "barryvdh/laravel-ide-helper": "^2.10",
     "facade/ignition": "^2.5",
     "fakerphp/faker": "^1.9.1",
@@ -49,9 +51,15 @@
   "scripts": {
     "post-autoload-dump": [
       "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
-      "@php artisan package:discover --ansi"
+      "@php artisan package:discover --ansi",
+      "@php artisan ide-helper:generate",
+      "@php artisan ide-helper:meta",
+      "@php artisan ide-helper:models --nowrite"
     ],
     "post-install-cmd": [
+      "@php artisan ide-helper:generate",
+      "@php artisan ide-helper:meta",
+      "@php artisan ide-helper:models --nowrite"
     ],
     "post-update-cmd": [
       "@php artisan vendor:publish --tag=laravel-assets --ansi",
