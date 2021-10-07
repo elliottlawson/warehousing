@@ -10,7 +10,7 @@ use App\Models\Transactions;
 use App\Services\Transaction;
 use App\Services\Warehouse\TransactionDTO;
 
-abstract class WarehouseActionsBase implements TransactionAction
+abstract class WarehouseActionsBase implements TransactionInterface
 {
     public function rollback(Batch $batch): Batch
     {
@@ -34,8 +34,8 @@ abstract class WarehouseActionsBase implements TransactionAction
     protected static function createStockInLocation(Location $location, TransactionDTO $data): Stock
     {
         return Stock::create([
-            'quantity'     => $data->quantity,
-            'location_id'  => $location->id,
+            'quantity' => $data->quantity,
+            'location_id' => $location->id,
             'inventory_id' => $data->inventory->id,
         ]);
     }
@@ -44,9 +44,9 @@ abstract class WarehouseActionsBase implements TransactionAction
     {
         $stock = Stock::withTrashed()
             ->firstOrCreate([
-                'lot'          => $data->lot,
+                'lot' => $data->lot,
                 'inventory_id' => $data->inventory->id,
-                'location_id'  => $location->id,
+                'location_id' => $location->id,
             ]);
 
         if ($stock->trashed()) {

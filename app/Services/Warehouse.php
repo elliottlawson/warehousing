@@ -8,6 +8,7 @@ use App\Models\Inventory;
 use App\Models\Location;
 use App\Models\Stock;
 use App\Providers\TransactionServiceProvider;
+use App\Services\Warehouse\RuleService;
 use App\Services\Warehouse\TransactionDTO;
 use App\Traits\Makeable;
 
@@ -15,7 +16,8 @@ class Warehouse
 {
     use Makeable;
 
-    public TransactionDTO $data;
+    protected TransactionDTO $data;
+    protected bool $checksHaveFailed;
 
     public function __construct()
     {
@@ -25,7 +27,7 @@ class Warehouse
     public static function receive(int $quantity): self
     {
         return tap(self::make(), static function (self $self) use ($quantity) {
-            $self->data->action   = TransactionType::RECEIVE();
+            $self->data->action = TransactionType::RECEIVE();
             $self->data->quantity = $quantity;
             $self->data->require('quantity', 'inventory');
         });
@@ -34,9 +36,9 @@ class Warehouse
     public static function add(int $quantity): self
     {
         return tap(self::make(), static function (self $self) use ($quantity) {
-            $self->data->action   = TransactionType::ADD();
+            $self->data->action = TransactionType::ADD();
             $self->data->quantity = $quantity;
-            $self->data->source   = LocationService::defaultAddSource();
+            $self->data->source = LocationService::defaultAddSource();
             $self->data->require('quantity', 'lot', 'inventory', 'destination');
         });
     }
@@ -44,7 +46,7 @@ class Warehouse
     public static function move(int $quantity): self
     {
         return tap(self::make(), static function (self $self) use ($quantity) {
-            $self->data->action   = TransactionType::MOVE();
+            $self->data->action = TransactionType::MOVE();
             $self->data->quantity = $quantity;
             $self->data->require('quantity', 'inventory', 'lot', 'source', 'destination');
         });
@@ -53,8 +55,8 @@ class Warehouse
     public static function purge(int $quantity): self
     {
         return tap(self::make(), static function (self $self) use ($quantity) {
-            $self->data->action      = TransactionType::PURGE();
-            $self->data->quantity    = $quantity;
+            $self->data->action = TransactionType::PURGE();
+            $self->data->quantity = $quantity;
             $self->data->destination = LocationService::defaultPurgeDestination();
             $self->data->require('quantity', 'lot', 'inventory', 'location');
         });
@@ -101,11 +103,26 @@ class Warehouse
     {
         $this->data->validate();
 
+        $this->runChecks();
+
+        if ($this->checksHaveFailed) {
+            return Stock::first();
+        }
+
         return TransactionServiceProvider::resolve($this->data->action)->handle($this->data);
     }
 
     public static function rollback(Batch $batch): Batch
     {
         return TransactionServiceProvider::resolve($batch->sourceTransaction()->type)->rollback($batch);
+    }
+
+    protected function runChecks(): void
+    {
+        $results = RuleService::for($this->data->destination)->evaluate($this->data);
+
+        $this->checksHaveFailed = ! $results->success;
+
+        ray($results);
     }
 }

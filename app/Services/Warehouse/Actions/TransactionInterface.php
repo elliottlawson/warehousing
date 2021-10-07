@@ -6,7 +6,7 @@ use App\Models\Batch;
 use App\Models\Stock;
 use App\Services\Warehouse\TransactionDTO;
 
-interface TransactionAction
+interface TransactionInterface
 {
     public function handle(TransactionDTO $data): Stock;
 

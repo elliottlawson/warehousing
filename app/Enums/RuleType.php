@@ -10,6 +10,6 @@ use BenSampo\Enum\Enum;
  */
 final class RuleType extends Enum
 {
-    const QUANTITY_LIMITATION = 'quantity_limitation';
-    const ITEM_LIMITATION = 'item_limitation';
+    public const QUANTITY_LIMITATION = 'quantity_limitation';
+    public const ITEM_LIMITATION = 'item_limitation';
 }

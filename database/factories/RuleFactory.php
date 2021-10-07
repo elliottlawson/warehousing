@@ -12,7 +12,7 @@ class RuleFactory extends Factory
      * The name of the factory's corresponding model.
      */
     protected $model = Rule::class;
-∫
+
     /**
      * Define the model's default state.
      */
@@ -21,7 +21,7 @@ class RuleFactory extends Factory
         return [
             'name' => $this->faker->realText('20'),
             'type' => RuleType::getRandomKey(),
-            'value' => $this->faker->numerify('##'),∫
+            'value' => $this->faker->numerify('##'),
         ];
     }
 }
