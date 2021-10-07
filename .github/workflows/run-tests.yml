@@ -4,14 +4,13 @@ on: [ push, pull_request ]
 
 jobs:
   tests:
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         os: [ ubuntu-latest ]
         php: [ 8.0 ]
-        laravel: [ 8.59 ]
-        dependency-version: [ prefer-lowest, prefer-stable ]
+        laravel: [ ^8.59 ]
         include:
           - laravel: ^8.59
             testbench: ^6.15
@@ -26,6 +25,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install sqlite3
+
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
@@ -43,4 +43,4 @@ jobs:
           echo "::add-matcher::${{ runner.tool_cache }}/phpunit.json"
 
       - name: Execute tests
-        run: vendor/bin/pest
+        run: vendor/bin/pest --verbose
