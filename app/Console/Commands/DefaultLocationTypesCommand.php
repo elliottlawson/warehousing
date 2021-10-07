@@ -18,7 +18,9 @@ class DefaultLocationTypesCommand extends Command
     public function handle(): int
     {
         collect($this->types)
-            ->each(fn ($name) => LocationType::create(['name' => $name]));
+            ->each(function ($name) {
+                LocationType::create(['name' => $name]);
+            });
 
         return self::SUCCESS;
     }
