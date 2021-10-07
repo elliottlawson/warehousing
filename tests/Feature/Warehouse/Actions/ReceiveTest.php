@@ -16,7 +16,7 @@ beforeEach(function () {
         ->for($this->location)
         ->create([
             'quantity' => $this->total_stock,
-            'lot' => $this->lot,
+            'lot'      => $this->lot,
         ]);
 });
 
