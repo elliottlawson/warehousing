@@ -3,7 +3,7 @@
 namespace App\Services\Warehouse\Rules;
 
 use App\Models\Rule;
-use App\Services\Warehouse\TransactionDTO;
+use App\Services\Warehouse\ActionDTO;
 
 abstract class AbstractRule implements RulesInterface
 {
@@ -21,7 +21,7 @@ abstract class AbstractRule implements RulesInterface
         return $this;
     }
 
-    public function evaluate(TransactionDTO $transaction): RuleDTO
+    public function evaluate(ActionDTO $transaction): RuleDTO
     {
         $this->results->setTransactionTo($transaction);
 

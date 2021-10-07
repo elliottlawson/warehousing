@@ -1,6 +1,7 @@
 <?php
 
 use App\Enums\RuleType;
+use App\Enums\TransactionDirection;
 use App\Models\Inventory;
 use App\Models\Location;
 use App\Models\Rule;
@@ -18,15 +19,15 @@ it('can apply a quantity limitation rule to a location', function () {
             'value' => 5000,
         ]);
 
-    $stock = Warehouse::receive(3000)
+    $batch = Warehouse::receive(3000)
         ->of($inventory)
         ->into($location)
         ->execute();
 
-    ray($rule, $stock);
+    ray($rule, $batch);
 
     $result = Warehouse::add(3000)
-        ->of($inventory, $stock->lot)
+        ->of($inventory, $batch->transaction->firstWhere('direction', TransactionDirection::TO())->lot)
         ->into($location)
         ->execute();
 

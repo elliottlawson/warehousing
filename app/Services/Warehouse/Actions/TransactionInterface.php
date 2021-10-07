@@ -3,12 +3,11 @@
 namespace App\Services\Warehouse\Actions;
 
 use App\Models\Batch;
-use App\Models\Stock;
-use App\Services\Warehouse\TransactionDTO;
+use App\Services\Warehouse\ActionDTO;
 
 interface TransactionInterface
 {
-    public function handle(TransactionDTO $data): Stock;
+    public function handle(ActionDTO $data): Batch;
 
     public function rollback(Batch $batch): Batch;
 }

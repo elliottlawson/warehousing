@@ -9,6 +9,7 @@ use App\Models\Location;
 use App\Models\Stock;
 use App\Providers\TransactionServiceProvider;
 use App\Services\Warehouse\RuleService;
+use App\Services\Warehouse\ActionDTO;
 use App\Services\Warehouse\TransactionDTO;
 use App\Traits\Makeable;
 
@@ -16,12 +17,14 @@ class Warehouse
 {
     use Makeable;
 
-    protected TransactionDTO $data;
+    protected ActionDTO $data;
     protected bool $checksHaveFailed;
+    protected TransactionDTO $transactionDTO;
 
     public function __construct()
     {
-        $this->data = TransactionDTO::make();
+        $this->data = ActionDTO::make();
+        $this->transactionDTO = TransactionDTO::make();
     }
 
     public static function receive(int $quantity): self
@@ -99,17 +102,25 @@ class Warehouse
         return $this;
     }
 
-    public function execute(): Stock
+    public function execute(): TransactionDTO
     {
         $this->data->validate();
 
         $this->runChecks();
 
+        $this->transactionDTO->action = $this->data->action;
+
         if ($this->checksHaveFailed) {
-            return Stock::first();
+            $this->transactionDTO->success = false;
+
+            return $this->transactionDTO;
         }
 
-        return TransactionServiceProvider::resolve($this->data->action)->handle($this->data);
+        $batch = TransactionServiceProvider::resolve($this->data->action)->handle($this->data);
+
+        $this->transactionDTO->batch = $batch;
+
+        return $this->transactionDTO;
     }
 
     public static function rollback(Batch $batch): Batch
@@ -119,10 +130,9 @@ class Warehouse
 
     protected function runChecks(): void
     {
-        $results = RuleService::for($this->data->destination)->evaluate($this->data);
+        $this->transactionDTO->rulesOutcome = RuleService::for($this->data->destination)->evaluate($this->data);
+        $this->transactionDTO->success = $this->transactionDTO->rulesOutcome->success;
 
-        $this->checksHaveFailed = ! $results->success;
-
-        ray($results);
+        $this->checksHaveFailed = ! $this->transactionDTO->success;
     }
 }

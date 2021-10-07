@@ -4,11 +4,11 @@ namespace App\Services\Warehouse\Actions;
 
 use App\Models\Stock;
 use App\Services\Transaction;
-use App\Services\Warehouse\TransactionDTO;
+use App\Services\Warehouse\ActionDTO;
 
 class Move extends WarehouseActionsBase
 {
-    public function handle(TransactionDTO $data): Stock
+    public function handle(ActionDTO $data): Stock
     {
         $source_stock = self::retrieveOrCreateStockFromLocation($data->source, $data);
 

@@ -27,7 +27,7 @@ class RuleService
         return $self;
     }
 
-    public function evaluate(TransactionDTO $transaction): RuleOutcomeDTO
+    public function evaluate(ActionDTO $transaction): RuleOutcomeDTO
     {
         $rules = $this->location->rules;
 

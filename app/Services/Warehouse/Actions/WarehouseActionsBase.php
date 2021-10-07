@@ -8,7 +8,7 @@ use App\Models\Location;
 use App\Models\Stock;
 use App\Models\Transactions;
 use App\Services\Transaction;
-use App\Services\Warehouse\TransactionDTO;
+use App\Services\Warehouse\ActionDTO;
 
 abstract class WarehouseActionsBase implements TransactionInterface
 {
@@ -31,7 +31,7 @@ abstract class WarehouseActionsBase implements TransactionInterface
         return Transaction::record(TransactionType::ROLLBACK(), $quantity, $source_stock, $destination_stock, $batch);
     }
 
-    protected static function createStockInLocation(Location $location, TransactionDTO $data): Stock
+    protected static function createStockInLocation(Location $location, ActionDTO $data): Stock
     {
         return Stock::create([
             'quantity' => $data->quantity,
@@ -40,7 +40,7 @@ abstract class WarehouseActionsBase implements TransactionInterface
         ]);
     }
 
-    protected static function retrieveOrCreateStockFromLocation(Location $location, TransactionDTO $data): Stock
+    protected static function retrieveOrCreateStockFromLocation(Location $location, ActionDTO $data): Stock
     {
         $stock = Stock::withTrashed()
             ->firstOrCreate([
@@ -56,7 +56,7 @@ abstract class WarehouseActionsBase implements TransactionInterface
         return $stock;
     }
 
-    protected static function retrieveStockFromLocation(Location $location, TransactionDTO $data): Stock
+    protected static function retrieveStockFromLocation(Location $location, ActionDTO $data): Stock
     {
         $stock = Stock::withTrashed()
             ->hasLotNumbers($data->lot)

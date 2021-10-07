@@ -3,7 +3,7 @@
 namespace App\Services\Warehouse\Rules;
 
 use App\Models\Rule;
-use App\Services\Warehouse\TransactionDTO;
+use App\Services\Warehouse\ActionDTO;
 use App\Traits\Makeable;
 
 class RuleDTO
@@ -12,7 +12,7 @@ class RuleDTO
 
     public Rule $rule;
 
-    public TransactionDTO $transaction;
+    public ActionDTO $transaction;
 
     protected string $message;
 
@@ -66,7 +66,7 @@ class RuleDTO
         return $this;
     }
 
-    public function setTransactionTo(TransactionDTO $transaction): self
+    public function setTransactionTo(ActionDTO $transaction): self
     {
         $this->transaction = $transaction;
 
