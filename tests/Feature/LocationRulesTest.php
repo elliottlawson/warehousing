@@ -13,8 +13,8 @@ it('can apply a quantity limitation rule to a location', function () {
     Rule::factory()
         ->for($location)
         ->create([
-            'name' => 'Limit location to 5,000 items',
-            'type' => RuleType::QUANTITY_LIMITATION,
+            'name'  => 'Limit location to 5,000 items',
+            'type'  => RuleType::QUANTITY_LIMITATION,
             'value' => 5000,
         ]);
 
