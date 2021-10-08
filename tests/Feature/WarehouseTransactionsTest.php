@@ -67,13 +67,13 @@ it('can check availability of stock by lot number', function () {
 
     expect($stock_with_multiple_locations)->toBe($quantity_1 + $quantity_2);
 
-    $stock_3 = Warehouse::receive($quantity_3)
+    $receive_result = Warehouse::receive($quantity_3)
         ->of($this->inventory)
         ->execute();
 
     $stock_with_multiple_lots = Warehouse::onHandOfLot($this->inventory, [
         $lot,
-        $stock_3->lot,
+        $receive_result->batch->destinationTransaction()->transactable->lot,
     ]);
 
     expect($stock_with_multiple_lots)->toBe($quantity_1 + $quantity_2 + $quantity_3);

@@ -1,7 +1,6 @@
 <?php
 
 use App\Enums\RuleType;
-use App\Enums\TransactionDirection;
 use App\Models\Inventory;
 use App\Models\Location;
 use App\Models\Rule;
@@ -11,7 +10,7 @@ it('can apply a quantity limitation rule to a location', function () {
     $inventory = Inventory::factory()->create();
     $location = Location::factory()->create();
 
-    $rule = Rule::factory()
+    Rule::factory()
         ->for($location)
         ->create([
             'name' => 'Limit location to 5,000 items',
@@ -19,17 +18,24 @@ it('can apply a quantity limitation rule to a location', function () {
             'value' => 5000,
         ]);
 
-    $batch = Warehouse::receive(3000)
+    $transactionDTO = Warehouse::receive(3000)
         ->of($inventory)
         ->into($location)
         ->execute();
 
-    ray($rule, $batch);
+    $lot = $transactionDTO->batch->destinationTransaction()->transactable->lot;
 
-    $result = Warehouse::add(3000)
-        ->of($inventory, $batch->transaction->firstWhere('direction', TransactionDirection::TO())->lot)
+    Warehouse::add(3000)
+        ->of($inventory, $lot)
         ->into($location)
         ->execute();
 
-    ray($result);
+    expect(Warehouse::onHandOfLotInLocation($inventory, $lot, $location))->toBe(3000);
+
+    Warehouse::add(2000)
+        ->of($inventory, $lot)
+        ->into($location)
+        ->execute();
+
+    expect(Warehouse::onHandOfLotInLocation($inventory, $lot, $location))->toBe(5000);
 });

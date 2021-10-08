@@ -2,14 +2,14 @@
 
 namespace App\Services\Warehouse\Actions;
 
-use App\Models\Stock;
+use App\Models\Batch;
 use App\Services\LocationService;
 use App\Services\Transaction;
 use App\Services\Warehouse\ActionDTO;
 
 class Purge extends WarehouseActionsBase
 {
-    public function handle(ActionDTO $data): Stock
+    public function handle(ActionDTO $data): Batch
     {
         $source_stock = self::retrieveStockFromLocation($data->source, $data);
 
@@ -20,6 +20,6 @@ class Purge extends WarehouseActionsBase
 
         Transaction::record($data->action, $data->quantity, $source_stock, $destination_stock);
 
-        return $source_stock;
+        return $source_stock->transactions->last()->batch;
     }
 }

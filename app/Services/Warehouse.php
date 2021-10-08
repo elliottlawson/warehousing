@@ -6,10 +6,10 @@ use App\Enums\TransactionType;
 use App\Models\Batch;
 use App\Models\Inventory;
 use App\Models\Location;
-use App\Models\Stock;
 use App\Providers\TransactionServiceProvider;
-use App\Services\Warehouse\RuleService;
 use App\Services\Warehouse\ActionDTO;
+use App\Services\Warehouse\Rules\RuleOutcomeDTO;
+use App\Services\Warehouse\RuleService;
 use App\Services\Warehouse\TransactionDTO;
 use App\Traits\Makeable;
 
@@ -20,11 +20,12 @@ class Warehouse
     protected ActionDTO $data;
     protected bool $checksHaveFailed;
     protected TransactionDTO $transactionDTO;
+    protected RuleOutcomeDTO $ruleOutcome;
+    protected ?Batch $batch = null;
 
     public function __construct()
     {
         $this->data = ActionDTO::make();
-        $this->transactionDTO = TransactionDTO::make();
     }
 
     public static function receive(int $quantity): self
@@ -77,12 +78,20 @@ class Warehouse
             ->sum('quantity');
     }
 
-    public function of(Inventory $inventory, int $lot = null): self
+    public static function onHandOfLotInLocation(Inventory $inventory, string|array $lot, Location $location): int
+    {
+        return $inventory->stock()
+            ->hasLotNumbers($lot)
+            ->inLocation($location)
+            ->sum('quantity');
+    }
+
+    public function of(Inventory $inventory, string|int $lot = null): self
     {
         $this->data->inventory = $inventory;
 
         if ($lot) {
-            $this->data->lot = $lot;
+            $this->data->lot = (string) $lot;
         }
 
         return $this;
@@ -106,21 +115,13 @@ class Warehouse
     {
         $this->data->validate();
 
-        $this->runChecks();
-
-        $this->transactionDTO->action = $this->data->action;
-
-        if ($this->checksHaveFailed) {
-            $this->transactionDTO->success = false;
-
-            return $this->transactionDTO;
+        if ($this->runChecks()) {
+            return $this->buildResponse(); // make abort method
         }
 
-        $batch = TransactionServiceProvider::resolve($this->data->action)->handle($this->data);
+        $this->batch = TransactionServiceProvider::resolve($this->data->action)->handle($this->data);
 
-        $this->transactionDTO->batch = $batch;
-
-        return $this->transactionDTO;
+        return $this->buildResponse();
     }
 
     public static function rollback(Batch $batch): Batch
@@ -128,11 +129,28 @@ class Warehouse
         return TransactionServiceProvider::resolve($batch->sourceTransaction()->type)->rollback($batch);
     }
 
-    protected function runChecks(): void
+    protected function runChecks(): bool
     {
-        $this->transactionDTO->rulesOutcome = RuleService::for($this->data->destination)->evaluate($this->data);
-        $this->transactionDTO->success = $this->transactionDTO->rulesOutcome->success;
+        // @todo - this is bad! fixme please
+        if ($this->data->action->is(TransactionType::RECEIVE)) {
+            $this->ruleOutcome = RuleOutcomeDTO::make()->setSuccess(true);
 
-        $this->checksHaveFailed = ! $this->transactionDTO->success;
+            return false;
+        }
+        $this->ruleOutcome = RuleService::for($this->data->destination)->evaluate($this->data);
+
+        return ! $this->ruleOutcome->success;
+    }
+
+    protected function buildResponse(): TransactionDTO
+    {
+        $response = TransactionDTO::make();
+
+        $response->transaction = $this->data;
+        $response->batch = $this->batch;
+        $response->rulesOutcome = $this->ruleOutcome;
+        $response->success = $this->ruleOutcome->success;
+
+        return $response;
     }
 }

@@ -23,15 +23,15 @@ beforeEach(function () {
 it('can add stock to an existing location', function () {
     $quantity = 100;
 
-    $stock = Warehouse::add($quantity)
+    $add_result = Warehouse::add($quantity)
         ->of($this->inventory, $this->lot)
         ->into($this->location)
         ->execute();
 
     /** @var Batch $batch */
-    $batch = $stock->destinationTransaction()->batch;
+    $batch = $add_result->batch;
 
-    expect($stock)
+    expect($batch->destinationTransaction()->transactable)
         ->quantity->toBe($this->total_stock + $quantity)
         ->transactions->not()->toBeNull()
         ->transactions->count()->toBe(1);
@@ -45,17 +45,17 @@ it('can add stock to an existing location', function () {
 it('can rollback an add transaction', function () {
     $quantity = 200;
 
-    $stock = Warehouse::add($quantity)
+    $add_result = Warehouse::add($quantity)
         ->of($this->inventory, $this->lot)
         ->into($this->location)
         ->execute();
 
     /** @var Batch $batch */
-    $batch = $stock->destinationTransaction()->batch;
+    $batch = $add_result->batch;
 
     $reverted_batch = Warehouse::rollback($batch);
 
-    expect($stock->refresh())
+    expect($batch->destinationTransaction()->transactable->refresh())
         ->quantity->toBe($this->total_stock)
         ->transactions->count()->toBe(2);
 

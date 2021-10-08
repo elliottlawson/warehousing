@@ -32,9 +32,4 @@ class Batch extends Model
     {
         return $this->belongsTo(self::class, 'reverted_id');
     }
-
-    public function stock(): Stock
-    {
-        return $this->transactions->first()->transactable;
-    }
 }

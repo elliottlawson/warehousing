@@ -2,13 +2,13 @@
 
 namespace App\Services\Warehouse\Actions;
 
-use App\Models\Stock;
+use App\Models\Batch;
 use App\Services\Transaction;
 use App\Services\Warehouse\ActionDTO;
 
 class Move extends WarehouseActionsBase
 {
-    public function handle(ActionDTO $data): Stock
+    public function handle(ActionDTO $data): Batch
     {
         $source_stock = self::retrieveOrCreateStockFromLocation($data->source, $data);
 
@@ -22,6 +22,6 @@ class Move extends WarehouseActionsBase
 
         Transaction::record($data->action, $data->quantity, $source_stock, $destination_stock);
 
-        return $destination_stock;
+        return $destination_stock->transactions->last()->batch;
     }
 }

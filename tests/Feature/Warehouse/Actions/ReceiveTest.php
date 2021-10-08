@@ -1,6 +1,5 @@
 <?php
 
-use App\Enums\TransactionType;
 use App\Models\Inventory;
 use App\Models\Location;
 use App\Models\Stock;
@@ -23,34 +22,27 @@ beforeEach(function () {
 it('can receive new inventory into the default location', function () {
     $quantity = 100;
 
-    $stock = Warehouse::receive($quantity)
+    $receive_result = Warehouse::receive($quantity)
         ->of($this->inventory)
         ->execute();
 
-    $batch = $stock->transactions
-        ->firstWhere('type', TransactionType::RECEIVE())
-        ->batch;
+    ray($receive_result);
 
-    $destination_stock = Stock::query()
-        ->ofInventory($stock->inventory)
-        ->inLocation($batch->sourceTransaction()->location)
-        ->first();
-
-    expect($stock)
+    expect($receive_result->batch->destinationTransaction()->transactable)
         ->not()->toBeNull()
         ->quantity->toBe($quantity)
         ->location->name->toBe(config('warehouse.receiving.destination'))
         ->transactions->not()->toBeNull();
 
-    expect($destination_stock)
+    expect($receive_result->batch->sourceTransaction()->transactable)
         ->not()->toBeNull()
         ->quantity->toBe(0);
 
-    expect($batch)
+    expect($receive_result->batch)
         ->transactions->count()->toBe(2)
         ->transactions->each(fn ($transaction) => $transaction->quantity->toBe($quantity));
 
-    expect($batch->sourceTransaction())
+    expect($receive_result->batch->sourceTransaction())
         ->quantity->toBe($quantity)
         ->location->name->toBe(config('warehouse.receiving.source'));
 });
@@ -58,12 +50,12 @@ it('can receive new inventory into the default location', function () {
 it('can receive new inventory into a set location', function () {
     $quantity = 150;
 
-    $stock = Warehouse::receive($quantity)
+    $receive_result = Warehouse::receive($quantity)
         ->of($this->inventory)
         ->into($this->location)
         ->execute();
 
-    expect($stock)
+    expect($receive_result->batch->destinationTransaction()->transactable)
         ->not()->toBeNull()
         ->quantity->toBe($quantity)
         ->location->id->toBe($this->location->id);
@@ -72,24 +64,18 @@ it('can receive new inventory into a set location', function () {
 it('can rollback a receive transaction', function () {
     $quantity = 1000;
 
-    $stock = Warehouse::receive($quantity)
+    $receive_result = Warehouse::receive($quantity)
         ->of($this->inventory)
         ->into($this->location)
         ->execute();
 
-    $receive_batch = $stock->transactions
-        ->firstWhere('type', TransactionType::RECEIVE())
-        ->batch;
+    $reverted_batch = Warehouse::rollback($receive_result->batch);
 
-    $reverted_batch = Warehouse::rollback($receive_batch);
-
-    $stock->refresh();
-
-    expect($stock)
+    expect($receive_result->batch->destinationTransaction()->transactable)
         ->quantity->toBe(0)
         ->transactions->count()->toBe(2);
 
-    expect($receive_batch)
+    expect($receive_result->batch)
         ->reverted_at->not()->toBeNull()
         ->transactions->each(fn ($transaction) => $transaction->reverted_at->not()->toBeNull());
 
@@ -100,10 +86,10 @@ it('can rollback a receive transaction', function () {
 
     expect($reverted_batch->sourceTransaction())
         ->quantity->toBe($quantity)
-        ->location->id->toBe($receive_batch->destinationTransaction()->location->id);
+        ->location->id->toBe($receive_result->batch->destinationTransaction()->location->id);
 
     expect($reverted_batch->destinationTransaction())
         ->quantity->toBe($quantity)
-        ->location->id->toBe($receive_batch->sourceTransaction()->location->id)
+        ->location->id->toBe($receive_result->batch->sourceTransaction()->location->id)
         ->transactable->quantity->toBe($quantity);
 });
