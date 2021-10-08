@@ -27,12 +27,12 @@ class Stock extends Model
     public static function booted(): void
     {
         // We want a 'default' lot number if none is set
-        static::creating(fn ($query) => $query->lot ??= self::generateLot());
+        static::creating(fn($query) => $query->lot ??= self::generateLot());
     }
 
     private static function generateLot(): string
     {
-        return random_int(1000, 99999);
+        return (string) random_int(1000, 99999);
     }
 
     public function batch(): Batch

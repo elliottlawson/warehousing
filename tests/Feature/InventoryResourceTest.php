@@ -19,7 +19,7 @@ it('can create and update a model')
     ->assertDatabaseHas('inventory', ['item_number' => 'Small Paperclips']);
 
 it('has a good relationship with inventory')
-    ->tap(fn () => $this->inventory->locations()->attach(Location::factory()->create()))
+    ->tap(fn ()    => $this->inventory->locations()->attach(Location::factory()->create()))
     ->expect(fn () => $this->inventory->refresh()->locations->first())
     ->toBeInstanceOf(Location::class);
 

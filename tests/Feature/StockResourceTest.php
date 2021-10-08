@@ -13,7 +13,7 @@ beforeEach(function () {
         ->for($this->location)
         ->create([
             'quantity' => 100,
-            'lot' => $this->lot,
+            'lot'      => $this->lot,
         ]);
 });
 

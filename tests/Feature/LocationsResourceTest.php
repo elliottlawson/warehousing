@@ -17,7 +17,7 @@ it('can create and update a modal')
     ->assertDatabaseHas('locations', ['name' => 'long term storage']);
 
 it('has a good relationship with locations')
-    ->tap(fn () => $this->location->inventory()->attach(Inventory::factory()->create()))
+    ->tap(fn ()    => $this->location->inventory()->attach(Inventory::factory()->create()))
     ->expect(fn () => $this->location->refresh()->inventory->first())
     ->toBeInstanceOf(Inventory::class);
 

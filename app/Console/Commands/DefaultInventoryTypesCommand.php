@@ -21,7 +21,9 @@ class DefaultInventoryTypesCommand extends Command
     public function handle(): int
     {
         collect(self::$data)
-            ->each(fn ($record) => InventoryType::create($record));
+            ->each(function ($record) {
+                InventoryType::create($record);
+            });
 
         return self::SUCCESS;
     }

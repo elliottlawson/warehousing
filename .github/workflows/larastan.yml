@@ -1,14 +1,18 @@
-name: Psalm
+name: Larastan
 
 on:
   push:
     paths:
       - '**.php'
-      - 'psalm.xml.dist'
+      - 'phpstan.neon'
+  pull_request:
+    paths:
+      - '**.php'
+      - 'phpstan.neon'
 
 jobs:
-  psalm:
-    name: psalm
+  larastan:
+    name: larastan
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -29,5 +33,5 @@ jobs:
       - name: Run composer install
         run: composer install -n --prefer-dist
 
-      - name: Run psalm
-        run: ./vendor/bin/psalm --output-format=github
+      - name: Run larastan
+        run: ./vendor/bin/phpstan

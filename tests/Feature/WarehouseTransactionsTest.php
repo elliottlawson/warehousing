@@ -15,7 +15,7 @@ beforeEach(function () {
         ->for($this->location)
         ->create([
             'quantity' => $this->total_stock,
-            'lot' => $this->lot,
+            'lot'      => $this->lot,
         ]);
 });
 
@@ -48,7 +48,7 @@ it('can check availability of stock by lot number', function () {
         ->forLocation()
         ->create([
             'quantity' => $quantity_1,
-            'lot' => $lot,
+            'lot'      => $lot,
         ]);
 
     $stock_with_one_location = Warehouse::onHandOflot($stock_1->inventory, $lot);
@@ -60,7 +60,7 @@ it('can check availability of stock by lot number', function () {
         ->forLocation()
         ->create([
             'quantity' => $quantity_2,
-            'lot' => $lot,
+            'lot'      => $lot,
         ]);
 
     $stock_with_multiple_locations = Warehouse::onHandOfLot($stock_2->inventory, $lot);
