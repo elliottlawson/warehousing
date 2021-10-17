@@ -27,7 +27,7 @@ class Stock extends Model
     public static function booted(): void
     {
         // We want a 'default' lot number if none is set
-        static::creating(fn($query) => $query->lot ??= self::generateLot());
+        static::creating(fn ($query) => $query->lot ??= self::generateLot());
     }
 
     private static function generateLot(): string
@@ -63,5 +63,21 @@ class Stock extends Model
     public function scopeHasLotNumbers(Builder $query, array|string $lotNumbers): Builder
     {
         return $query->whereIn('lot', Arr::wrap($lotNumbers));
+    }
+
+    public function add(int $quantity): self
+    {
+        $this->quantity += $quantity;
+        $this->save();
+
+        return $this;
+    }
+
+    public function subtract(int $quantity): self
+    {
+        $this->quantity -= $quantity;
+        $this->save();
+
+        return $this;
     }
 }

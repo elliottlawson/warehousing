@@ -146,10 +146,10 @@ class Warehouse
     {
         $response = TransactionDTO::make();
 
-        $response->transaction = $this->data;
-        $response->batch = $this->batch;
+        $response->transaction  = $this->data;
+        $response->batch        = $this->batch;
         $response->rulesOutcome = $this->ruleOutcome;
-        $response->success = $this->ruleOutcome->success;
+        $response->success      = $this->ruleOutcome->success;
 
         return $response;
     }

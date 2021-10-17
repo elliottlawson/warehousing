@@ -2,24 +2,19 @@
 
 namespace App\Services\Warehouse\Actions;
 
-use App\Models\Batch;
+use App\Models\Stock;
 use App\Services\LocationService;
-use App\Services\Transaction;
 use App\Services\Warehouse\ActionDTO;
 
 class Purge extends WarehouseActionsBase
 {
-    public function handle(ActionDTO $data): Batch
+    public function setSourceStock(ActionDTO $data): Stock
     {
-        $source_stock = self::retrieveStockFromLocation($data->source, $data);
+        return self::retrieveStockFromLocation($data->source, $data);
+    }
 
-        $source_stock->quantity -= $data->quantity;
-        $source_stock->save();
-
-        $destination_stock = self::retrieveOrCreateStockFromLocation(LocationService::defaultPurgeDestination(), $data);
-
-        Transaction::record($data->action, $data->quantity, $source_stock, $destination_stock);
-
-        return $source_stock->transactions->last()->batch;
+    public function setDestinationStock(ActionDTO $data): Stock
+    {
+        return self::retrieveOrCreateStockFromLocation(LocationService::defaultPurgeDestination(), $data);
     }
 }

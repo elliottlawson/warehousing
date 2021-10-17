@@ -13,14 +13,15 @@ class ActionDTO
 {
     use Makeable;
 
-    public ?Inventory $inventory = null;
-    public ?Location $source = null;
-    public ?Location $destination = null;
-    public ?Stock $stock = null;
-    public ?int $quantity = null;
-    public ?string $lot = null;
-    public ?TransactionType $action = null;
-    public array $requirements = [];
+    public ?Inventory $inventory     = null;
+    public ?Location $source         = null;
+    public ?Stock $source_stock      = null;
+    public ?Stock $destination_stock = null;
+    public ?Location $destination    = null;
+    public ?int $quantity            = null;
+    public ?string $lot              = null;
+    public ?TransactionType $action  = null;
+    public array $requirements       = [];
 
     public function require(...$requirements): void
     {
@@ -43,16 +44,13 @@ class ActionDTO
             throw new RuntimeException("Specifying a lot number is required to execute a {$this->action->value}");
         }
 
-        if (in_array('stock', $this->requirements, true) && is_null($this->stock)) {
-            throw new RuntimeException("Specifying stock is required to execute a {$this->action->value}");
-        }
-
         if (in_array('inventory', $this->requirements, true) && is_null($this->inventory)) {
             throw new RuntimeException("Specifying inventory is required to execute a {$this->action->value}");
         }
 
         if (in_array('source', $this->requirements, true) && is_null($this->source)) {
             ray('no source');
+
             throw new RuntimeException("Specifying a source location is required to execute a {$this->action->value}");
         }
 

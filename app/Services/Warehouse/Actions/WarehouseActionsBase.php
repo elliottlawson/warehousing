@@ -9,9 +9,24 @@ use App\Models\Stock;
 use App\Models\Transactions;
 use App\Services\Transaction;
 use App\Services\Warehouse\ActionDTO;
+use App\Services\Warehouse\StockTransactionService;
 
 abstract class WarehouseActionsBase implements TransactionInterface
 {
+    public function handle(ActionDTO $data): Batch
+    {
+        $data->source_stock      = $this->setSourceStock($data);
+        $data->destination_stock = $this->setDestinationStock($data);
+
+        StockTransactionService::process($data->quantity)
+            ->from($data->source_stock)
+            ->to($data->destination_stock);
+
+        Transaction::record($data->action, $data->quantity, $data->source_stock, $data->destination_stock);
+
+        return $data->destination_stock->transactions->last()->batch;
+    }
+
     public function rollback(Batch $batch): Batch
     {
         $batch->loadMissing('transactions', 'transactions.transactable');
@@ -34,8 +49,7 @@ abstract class WarehouseActionsBase implements TransactionInterface
     protected static function createStockInLocation(Location $location, ActionDTO $data): Stock
     {
         return Stock::create([
-            'quantity' => $data->quantity,
-            'location_id' => $location->id,
+            'location_id'  => $location->id,
             'inventory_id' => $data->inventory->id,
         ]);
     }
@@ -44,9 +58,9 @@ abstract class WarehouseActionsBase implements TransactionInterface
     {
         $stock = Stock::withTrashed()
             ->firstOrCreate([
-                'lot' => $data->lot,
+                'lot'          => $data->lot,
                 'inventory_id' => $data->inventory->id,
-                'location_id' => $location->id,
+                'location_id'  => $location->id,
             ]);
 
         if ($stock->trashed()) {
