@@ -66,26 +66,6 @@ class Warehouse
         });
     }
 
-    public static function onHand(Inventory $inventory): int
-    {
-        return $inventory->stock()->sum('quantity');
-    }
-
-    public static function onHandOfLot(Inventory $inventory, string|array $lot): int
-    {
-        return $inventory->stock()
-            ->hasLotNumbers($lot)
-            ->sum('quantity');
-    }
-
-    public static function onHandOfLotInLocation(Inventory $inventory, string|array $lot, Location $location): int
-    {
-        return $inventory->stock()
-            ->hasLotNumbers($lot)
-            ->inLocation($location)
-            ->sum('quantity');
-    }
-
     public function of(Inventory $inventory, string|int $lot = null): self
     {
         $this->data->inventory = $inventory;
