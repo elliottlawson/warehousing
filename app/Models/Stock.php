@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\LocationService;
 use App\Traits\Transactable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -24,12 +25,34 @@ class Stock extends Model
 
     protected $guarded = ['id'];
 
-    public static function boot(): void
+    public static function booted(): void
     {
-        parent::boot();
-
         // We want a 'default' lot number if none is set
-        static::creating(fn($query) => $query->lot ??= self::generateLot());
+        static::creating(fn ($query) => $query->lot ??= self::generateLot());
+
+        static::addGlobalScope('suppressReceiveAndPurgeStock', function (Builder $query) {
+            $query->whereDoesntHave('location', function (Builder $query) {
+                $query->whereIn('id', [
+                    LocationService::defaultReceivingSource()->id,
+                    LocationService::defaultPurgeDestination()->id,
+                ]);
+            });
+        });
+    }
+
+    public function scopeIncludeSystemStocks(Builder $query): void
+    {
+        $query->withoutGlobalScope('suppressReceiveAndPurgeStock');
+    }
+
+    public function scopeExcludeSystemStocks(Builder $query): void
+    {
+        $query->whereDoesntHave('location', function (Builder $query) {
+            $query->whereIn('id', [
+                LocationService::defaultReceivingSource()->id,
+                LocationService::defaultPurgeDestination()->id,
+            ]);
+        });
     }
 
     private static function generateLot(): string
@@ -65,5 +88,21 @@ class Stock extends Model
     public function scopeHasLotNumbers(Builder $query, array|string $lotNumbers): Builder
     {
         return $query->whereIn('lot', Arr::wrap($lotNumbers));
+    }
+
+    public function add(int $quantity): self
+    {
+        $this->quantity += $quantity;
+        $this->save();
+
+        return $this;
+    }
+
+    public function subtract(int $quantity): self
+    {
+        $this->quantity -= $quantity;
+        $this->save();
+
+        return $this;
     }
 }

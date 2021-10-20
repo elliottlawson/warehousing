@@ -3,6 +3,7 @@
 use App\Models\Inventory;
 use App\Models\Location;
 use App\Models\Stock;
+use App\Services\StockService;
 use App\Services\Warehouse;
 
 beforeEach(function () {
@@ -21,7 +22,7 @@ beforeEach(function () {
 
 
 it('can check the on-hand quantity of inventory across locations', function () {
-    $original_total = Warehouse::onHand($this->inventory);
+    $original_total = StockService::onHand($this->inventory);
 
     expect($original_total)->toBe($this->total_stock);
 
@@ -32,7 +33,7 @@ it('can check the on-hand quantity of inventory across locations', function () {
         ->into($this->location)
         ->execute();
 
-    $total = Warehouse::onHand($this->inventory);
+    $total = StockService::onHand($this->inventory);
 
     expect($total)->toBe($original_total + 50);
 });
@@ -51,7 +52,7 @@ it('can check availability of stock by lot number', function () {
             'lot'      => $lot,
         ]);
 
-    $stock_with_one_location = Warehouse::onHandOflot($stock_1->inventory, $lot);
+    $stock_with_one_location = StockService::onHandOflot($stock_1->inventory, $lot);
 
     expect($stock_with_one_location)->toBe($quantity_1);
 
@@ -63,17 +64,17 @@ it('can check availability of stock by lot number', function () {
             'lot'      => $lot,
         ]);
 
-    $stock_with_multiple_locations = Warehouse::onHandOfLot($stock_2->inventory, $lot);
+    $stock_with_multiple_locations = StockService::onHandOfLot($stock_2->inventory, $lot);
 
     expect($stock_with_multiple_locations)->toBe($quantity_1 + $quantity_2);
 
-    $stock_3 = Warehouse::receive($quantity_3)
+    $receive_result = Warehouse::receive($quantity_3)
         ->of($this->inventory)
         ->execute();
 
-    $stock_with_multiple_lots = Warehouse::onHandOfLot($this->inventory, [
+    $stock_with_multiple_lots = StockService::onHandOfLot($this->inventory, [
         $lot,
-        $stock_3->lot,
+        $receive_result->batch->destinationTransaction()->transactable->lot,
     ]);
 
     expect($stock_with_multiple_lots)->toBe($quantity_1 + $quantity_2 + $quantity_3);

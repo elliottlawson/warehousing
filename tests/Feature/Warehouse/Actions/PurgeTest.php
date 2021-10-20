@@ -1,6 +1,5 @@
 <?php
 
-use App\Enums\TransactionType;
 use App\Models\Inventory;
 use App\Models\Location;
 use App\Models\Stock;
@@ -24,33 +23,31 @@ it('can purge some stock from a location', function () {
     $initial_quantity = 5000;
     $purge_quantity = 1500;
 
-    $stock = Warehouse::receive($initial_quantity)
+    $receive_result = Warehouse::receive($initial_quantity)
         ->of($this->inventory)
         ->into($this->location)
         ->execute();
 
-    $adjusted = Warehouse::purge($purge_quantity)
-        ->of($this->inventory, $stock->lot)
+    $lot = $receive_result->batch->destinationTransaction()->transactable->lot; // @todo - add lot accessor to batch
+
+    $purge_result = Warehouse::purge($purge_quantity)
+        ->of($this->inventory, $lot)
         ->from($this->location)
         ->execute();
 
-    $purge_batch = $adjusted->transactions
-        ->firstWhere('type', TransactionType::PURGE())
-        ->batch;
-
-    expect($adjusted)
+    expect($purge_result->batch->sourceTransaction()->transactable)
         ->not()->toBeNull()
         ->quantity->toBe($initial_quantity - $purge_quantity);
 
-    expect($stock->transactions)
+    expect($receive_result->batch->transactions)
         ->not()->toBeNull()
         ->count()->toBe(2);
 
-    expect($purge_batch->sourceTransaction())
+    expect($purge_result->batch->sourceTransaction())
         ->quantity->toBe($purge_quantity)
         ->location->id->toBe($this->location->id);
 
-    expect($purge_batch->destinationTransaction())
+    expect($purge_result->batch->destinationTransaction())
         ->quantity->toBe($purge_quantity)
         ->location->name->toBe(config('warehouse.purge.destination'));
 });
@@ -65,17 +62,19 @@ it('can purge all stock from a location', function () {
 });
 
 it('can drive stock negative with a purge', function () {
-    $stock = Warehouse::receive(50)
+    $receive_result = Warehouse::receive(50)
         ->of($this->inventory)
         ->into($this->location)
         ->execute();
 
-    $purged = Warehouse::purge(100)
-        ->of($this->inventory, $stock->lot)
+    $lot = $receive_result->batch->destinationTransaction()->transactable->lot;
+
+    $purge_result = Warehouse::purge(100)
+        ->of($this->inventory, $lot)
         ->from($this->location)
         ->execute();
 
-    expect($purged)
+    expect($purge_result->batch->sourceTransaction()->transactable)
         ->not()->toBeNull()
         ->quantity->toBe(-50);
 });
@@ -86,26 +85,19 @@ it('can rollback a purge transaction', function () {
     $initial_quantity = 5000;
     $purge_quantity = 1500;
 
-    $received = Warehouse::receive($initial_quantity)
+    $receive_result = Warehouse::receive($initial_quantity)
         ->of($inventory)
         ->into($this->location)
         ->execute();
 
-    $purged = Warehouse::purge($purge_quantity)
-        ->of($inventory, $received->lot)
+    $lot = $receive_result->batch->destinationTransaction()->transactable->lot;
+
+    $purge_result = Warehouse::purge($purge_quantity)
+        ->of($inventory, $lot)
         ->from($this->location)
         ->execute();
 
-    $batch_to_revert = $purged->transactions()
-        ->whereType(TransactionType::PURGE())
-        ->whereQuantity($purge_quantity)
-        ->whereLocationId($purged->location->id)
-        ->first()
-        ->batch;
-
-    $reverted_batch = Warehouse::rollback($batch_to_revert);
-
-    $purged->refresh()->load('transactions', 'transactions.location');
+    $reverted_batch = Warehouse::rollback($purge_result->batch);
 
     expect($reverted_batch)
         ->not()->toBeNull()
@@ -113,9 +105,9 @@ it('can rollback a purge transaction', function () {
         ->sourceTransaction()->quantity->toBe($purge_quantity)
         ->destinationTransaction()->quantity->toBe($purge_quantity);
 
-    expect($batch_to_revert)
+    expect($purge_result->batch)
         ->reverted_at->not()->toBeNull()
         ->transactions->each(fn ($transactions) => $transactions->reverted_at->not()->toBeNull());
 
-    expect($purged->quantity)->toBe($initial_quantity);
+    expect($purge_result->batch->sourceTransaction()->transactable->refresh()->quantity)->toBe($initial_quantity);
 });

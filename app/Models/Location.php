@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\Types\LocationType;
 use App\Traits\HasInventory;
+use App\Traits\HasRules;
 use App\Traits\HasStock;
 use App\Traits\Typeable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -14,6 +15,7 @@ class Location extends Model
 {
     use HasFactory;
     use HasInventory;
+    use HasRules;
     use HasStock;
     use Typeable;
     use SoftDeletes;
