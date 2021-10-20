@@ -18,7 +18,7 @@ abstract class WarehouseActionsBase implements TransactionInterface
         $data->source_stock      = $this->setSourceStock($data);
         $data->destination_stock = $this->setDestinationStock($data);
 
-        StockTransactionService::process($data->quantity)
+        StockTransactionService::transfer($data->quantity)
             ->from($data->source_stock)
             ->to($data->destination_stock);
 
@@ -88,7 +88,7 @@ abstract class WarehouseActionsBase implements TransactionInterface
     protected static function retrieveStockFromTransaction(Transactions $transaction): Stock
     {
         /** @var Stock $stock */
-        $stock = $transaction->transactable->loadMissing('location');
+        $stock = $transaction->transactable()->includeSystemStocks()->first(); // @TODO - Refactor?
 
         if ($stock->trashed()) {
             $stock->restore();

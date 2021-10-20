@@ -9,12 +9,15 @@ class StockService
 {
     public static function onHand(Inventory $inventory): int
     {
-        return $inventory->stock()->sum('quantity');
+        return $inventory->stock()
+            ->excludeSystemStocks()
+            ->sum('quantity');
     }
 
     public static function onHandOfLot(Inventory $inventory, string|array $lot): int
     {
         return $inventory->stock()
+            ->excludeSystemStocks()
             ->hasLotNumbers($lot)
             ->sum('quantity');
     }

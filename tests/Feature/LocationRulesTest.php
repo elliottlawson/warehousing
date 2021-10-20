@@ -4,6 +4,7 @@ use App\Enums\RuleType;
 use App\Models\Inventory;
 use App\Models\Location;
 use App\Models\Rule;
+use App\Services\StockService;
 use App\Services\Warehouse;
 
 it('can apply a quantity limitation rule to a location', function () {
@@ -30,12 +31,12 @@ it('can apply a quantity limitation rule to a location', function () {
         ->into($location)
         ->execute();
 
-    expect(Warehouse::onHandOfLotInLocation($inventory, $lot, $location))->toBe(3000);
+    expect(StockService::onHandOfLotInLocation($inventory, $lot, $location))->toBe(3000);
 
     Warehouse::add(2000)
         ->of($inventory, $lot)
         ->into($location)
         ->execute();
 
-    expect(Warehouse::onHandOfLotInLocation($inventory, $lot, $location))->toBe(5000);
+    expect(StockService::onHandOfLotInLocation($inventory, $lot, $location))->toBe(5000);
 });

@@ -15,7 +15,7 @@ class StockTransactionService
 
     protected int $quantity;
 
-    public static function process(int $quantity): self
+    public static function transfer(int $quantity): self
     {
         $self = self::make();
 
